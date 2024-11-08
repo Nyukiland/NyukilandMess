@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -15,6 +16,13 @@ public class CustomDeferredLight : MonoBehaviour
 
 	private void OnEnable()
 	{
+		StartCoroutine(WaitForRegister());
+	}
+
+	IEnumerator WaitForRegister()
+	{
+		yield return new WaitForSeconds(0.1f);
+
 		CustomDeferredLightRenderer.Instance.RegisterLight(this);
 	}
 
