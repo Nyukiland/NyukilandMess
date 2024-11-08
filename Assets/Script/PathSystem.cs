@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,11 +6,12 @@ using UnityEngine;
 public class PathSystem : MonoBehaviour
 {
 	[SerializeField]
-	private List<Transform> _controlPoints = new();
+	private List<PathPoint> _controlPoints = new();
 
-	[SerializeField, Min(1)]
+	[SerializeField, Min(0)]
 	private int _resolution;
 
+	[SerializeField]
 	List<PathStorage> _pathPoint = new();
 
 	private void Update()
@@ -25,43 +27,50 @@ public class PathSystem : MonoBehaviour
 
 		for (int i = 0; i < _controlPoints.Count; i++)
 		{
-			List<PathStorage> tempList = new();
+			List<PathStorage> tempList = new List<PathStorage>();
 
-			PathStorage temp = new();
-			temp.pos = _controlPoints[i].position;
-			temp.rot = _controlPoints[i].eulerAngles;
-			temp.size = _controlPoints[i].localScale.x;
-
-			tempList.Add(temp);
-
-			temp.pos = _controlPoints[i].position + _controlPoints[i].forward * _controlPoints[i].localScale.z;
-
-			tempList.Add(temp);
-
-			if (_resolution > 1)
+			PathStorage firstPoint = new PathStorage
 			{
-				for (int j = 0; j < _resolution; j++)
+				Pos = _controlPoints[i].MainPoint.position,
+				Rot = _controlPoints[i].MainPoint.eulerAngles,
+				Size = _controlPoints[i].MainPoint.localScale.x
+			};
+
+			PathStorage midPoint = new PathStorage
+			{
+				Pos = _controlPoints[i].MidPoint.position,
+				Rot = _controlPoints[i].MidPoint.eulerAngles,
+				Size = _controlPoints[i].MidPoint.localScale.x
+			};
+
+			PathStorage lastPoint = new PathStorage
+			{
+				Pos = (i + 1 < _controlPoints.Count) ? _controlPoints[i + 1].MainPoint.position : _controlPoints[0].MainPoint.position,
+				Rot = (i + 1 < _controlPoints.Count) ? _controlPoints[i + 1].MainPoint.eulerAngles : _controlPoints[0].MainPoint.eulerAngles,
+				Size = (i + 1 < _controlPoints.Count) ? _controlPoints[i + 1].MainPoint.localScale.x : _controlPoints[0].MainPoint.localScale.x
+			};
+
+			tempList.Add(firstPoint);
+
+			for (int j = 0; j <= _resolution; j++)
+			{
+				float t = (float)j / _resolution;
+
+				Vector3 lerpPos1 = Vector3.Lerp(firstPoint.Pos, midPoint.Pos, t);
+				Vector3 lerpPos2 = Vector3.Lerp(midPoint.Pos, lastPoint.Pos, t);
+				Vector3 finalPos = Vector3.Lerp(lerpPos1, lerpPos2, t);
+
+				PathStorage splinePoint = new PathStorage
 				{
-					List<PathStorage> newTempList = new();
+					Pos = finalPos,
+					Rot = Vector3.Lerp(firstPoint.Rot, lastPoint.Rot, t),
+					Size = Mathf.Lerp(firstPoint.Size, lastPoint.Size, t)
+				};
 
-					for (int k = 0; k < tempList.Count; k++)
-					{
-						if (k + 1 >= tempList.Count)
-						{
-							Vector3.Distance(tempList[k].pos, _controlPoints[i + 1].position);
-						}
-						else
-						{
-							Vector3.Distance(tempList[k].pos, tempList[k+1].pos);
-						}
-					}
-				}
+				tempList.Add(splinePoint);
 			}
 
-			foreach (PathStorage t in tempList)
-			{
-				_pathPoint.Add(temp);
-			}
+			_pathPoint.AddRange(tempList);
 		}
 	}
 
@@ -84,7 +93,7 @@ public class PathSystem : MonoBehaviour
 #endif
 	}
 
-	private bool IsSimilar(List<Transform> current, List<TransformStorage> previous)
+	private bool IsSimilar(List<PathPoint> current, List<TransformStorage> previous)
 	{
 		bool isSame = true;
 
@@ -95,23 +104,23 @@ public class PathSystem : MonoBehaviour
 				isSame = false;
 
 				TransformStorage t = new();
-				t.position = current[i].position;
-				t.eulerAngle = current[i].eulerAngles;
-				t.localScale = current[i].localScale;
+				t.position = current[i].MainPoint.position;
+				t.eulerAngle = current[i].MainPoint.eulerAngles;
+				t.localScale = current[i].MainPoint.localScale;
 				previous.Add(t);
 
 				continue;
 			}
 
-			if (current[i].position != previous[i].position || current[i].eulerAngles != previous[i].eulerAngle || current[i].localScale != previous[i].localScale)
+			if (current[i].MainPoint.position != previous[i].position || current[i].MainPoint.eulerAngles != previous[i].eulerAngle || current[i].MainPoint.localScale != previous[i].localScale)
 			{
 				isSame = false;
 
 				TransformStorage temp = new();
 
-				temp.position = current[i].position;
-				temp.eulerAngle = current[i].eulerAngles;
-				temp.localScale = current[i].localScale;
+				temp.position = current[i].MainPoint.position;
+				temp.eulerAngle = current[i].MainPoint.eulerAngles;
+				temp.localScale = current[i].MainPoint.localScale;
 
 				previous[i] = temp;
 			}
@@ -122,21 +131,23 @@ public class PathSystem : MonoBehaviour
 
 	private void OnDrawGizmos()
 	{
-		foreach (Transform t in _controlPoints)
+		for (int t = 0; t < _controlPoints.Count; t++)
 		{
 			Gizmos.color = Color.black;
-			Gizmos.DrawRay(t.position, t.transform.right * t.localScale.x);
-			Gizmos.DrawRay(t.position, -t.transform.right * t.localScale.x);
+			Gizmos.DrawRay(_controlPoints[t].MainPoint.position, _controlPoints[t].MainPoint.transform.right * _controlPoints[t].MainPoint.localScale.x);
+			Gizmos.DrawRay(_controlPoints[t].MainPoint.position, -_controlPoints[t].MainPoint.transform.right * _controlPoints[t].MainPoint.localScale.x);
 
 			Gizmos.color = Color.blue;
-			Gizmos.DrawRay(t.position, t.transform.forward * t.localScale.z);
+			Gizmos.DrawLine(_controlPoints[t].MainPoint.position, _controlPoints[t].MidPoint.position);
+			if (t + 1 < _controlPoints.Count) Gizmos.DrawLine(_controlPoints[t].MidPoint.position, _controlPoints[t + 1].MainPoint.position);
+			else Gizmos.DrawLine(_controlPoints[t].MidPoint.position, _controlPoints[0].MainPoint.position);
 		}
 
 		Gizmos.color = Color.white;
 		for (int i = 0; i < _pathPoint.Count; i++)
 		{
-			if (i + 1 >= _pathPoint.Count) Gizmos.DrawLine(_pathPoint[i].pos, _pathPoint[0].pos);
-			else Gizmos.DrawLine(_pathPoint[i].pos, _pathPoint[i + 1].pos);
+			if (i + 1 >= _pathPoint.Count) Gizmos.DrawLine(_pathPoint[i].Pos, _pathPoint[0].Pos);
+			else Gizmos.DrawLine(_pathPoint[i].Pos, _pathPoint[i + 1].Pos);
 		}
 	}
 
@@ -148,10 +159,24 @@ public class PathSystem : MonoBehaviour
 	}
 	#endregion
 
+	[Serializable]
+	public struct PathPoint
+	{
+		public Transform MainPoint;
+		[SerializeField]
+		private Transform _midPoint;
+		public Transform MidPoint
+		{
+			get => _midPoint;
+			set => _midPoint = value != null ? value : null;
+		}
+	}
+
+	[Serializable]
 	public struct PathStorage
 	{
-		public Vector3 pos;
-		public Vector3 rot;
-		public float size;
+		public Vector3 Pos;
+		public Vector3 Rot;
+		public float Size;
 	}
 }
