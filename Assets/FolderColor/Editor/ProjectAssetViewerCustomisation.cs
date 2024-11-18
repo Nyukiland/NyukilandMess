@@ -55,20 +55,33 @@ namespace FolderColor
         [MenuItem("Assets/Custom Folder", false, 100)]
         private static void CustomModificationMenuItem()
         {
-            // Get the selected asset path
-            string assetPath = AssetDatabase.GetAssetPath(Selection.activeObject);
-
-            CustomWindowFileImage.ShowWindow(assetPath);
+			string[] guids = Selection.assetGUIDs;
+			for (int i = 0; i < guids.Length; i++)
+			{
+				string guid = guids[i];
+				string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+				if (AssetDatabase.IsValidFolder(assetPath))
+				{
+					CustomWindowFileImage.ShowWindow(assetPath);
+					break;
+				}
+			}
         }
 
         // Validate function to enable/disable the menu item
         [MenuItem("Assets/Custom Folder", true)]
         private static bool ValidateCustomModificationMenuItem()
         {
-            string assetPath = AssetDatabase.GetAssetPath(Selection.activeObject);
+			string[] guids = Selection.assetGUIDs;
+			for (int i = 0; i < guids.Length; i++)
+			{
+				string guid = guids[i];
+				string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+				if (AssetDatabase.IsValidFolder(assetPath)) return true;
+			}
 
-            return AssetDatabase.IsValidFolder(assetPath);
-        }
+			return false;
+		}
 
         public static void SaveData()
         {
@@ -81,23 +94,37 @@ namespace FolderColor
             // Convert to JSON
             string jsonData = JsonUtility.ToJson(modificationData);
 
-            // Save to PlayerPrefs or a file
-            File.WriteAllText("Assets/FolderColor/SaveSetUp/FolderModificationData.json", jsonData);
+			string path = FindScriptPathByName("ProjectAssetViewerCustomisation");
+			path = path.Replace("Editor/ProjectAssetViewerCustomisation.cs", "SaveSetUp/FolderModificationData.json");
+
+			File.WriteAllText(path, jsonData);
         }
 
         private static void LoadData()
         {
-            // Load data from PlayerPrefs or a file
-            string filePath = "Assets/FolderColor/SaveSetUp/FolderModificationData.json";
+			string filePath = FindScriptPathByName("ProjectAssetViewerCustomisation");
+			filePath = filePath.Replace("Editor/ProjectAssetViewerCustomisation.cs", "SaveSetUp/FolderModificationData.json");
 
             if (File.Exists(filePath))
             {
-                // Read the JSON data
                 string jsonData = File.ReadAllText(filePath);
 
-                // Deserialize into modificationData
                 modificationData = JsonUtility.FromJson<AssetModificationData>(jsonData);
             }
         }
-    }
+
+		public static string FindScriptPathByName(string scriptName)
+		{
+			string[] guids = AssetDatabase.FindAssets($"{scriptName} t:script");
+
+			if (guids.Length == 0)
+			{
+				Debug.LogError($"Script with name '{scriptName}' not found!");
+				return null;
+			}
+
+			string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+			return path;
+		}
+	}
 }

@@ -28,7 +28,10 @@ namespace FolderColor
                 Close();
             }
 
-            string[] texturesPath = AssetDatabase.FindAssets("t:texture2D", new[] { "Assets/FolderColor" });
+			string path = ProjectAssetViewerCustomisation.FindScriptPathByName("CustomWindowFileImage");
+			path = path.Replace("/Editor/CustomWindowFileImage.cs", "");
+
+			string[] texturesPath = AssetDatabase.FindAssets("t:texture2D", new[] { path });
 
             int buttonsPerRow = 4;
             float buttonPadding = 10f;
