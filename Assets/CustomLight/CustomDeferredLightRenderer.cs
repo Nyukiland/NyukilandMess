@@ -6,10 +6,7 @@ using UnityEngine.Rendering;
 public class CustomDeferredLightRenderer : MonoBehaviour
 {
 	public static CustomDeferredLightRenderer Instance { get; private set; }
-	public Mesh lightSphereMesh;
-	public Shader lightShader;
 
-	private Material lightMaterial;
 	private Dictionary<Camera, CommandBuffer> commandBuffers = new Dictionary<Camera, CommandBuffer>();
 	private HashSet<CustomDeferredLight> lights = new HashSet<CustomDeferredLight>();
 
@@ -22,7 +19,6 @@ public class CustomDeferredLightRenderer : MonoBehaviour
 		}
 
 		Instance = this;
-		lightMaterial = new Material(lightShader);
 		Camera.onPreCull += UpdateCommandBuffer;
 	}
 
@@ -55,7 +51,10 @@ public class CustomDeferredLightRenderer : MonoBehaviour
 		foreach (var light in lights)
 		{
 			var materialPropertyBlock = light.GetPropertyBlock();
-			commandBuffer.DrawMesh(lightSphereMesh, light.GetTransformMatrix(), lightMaterial, 0, -1, materialPropertyBlock);
+			Shader lightShader = light.GetLightShader(); // Get the shader assigned to this light
+
+			Material lightMaterial = new Material(lightShader);
+			commandBuffer.DrawMesh(light.GetMesh(), light.GetTransformMatrix(), lightMaterial, 0, -1, materialPropertyBlock);
 		}
 	}
 

@@ -5,14 +5,25 @@ using UnityEngine.Rendering;
 [ExecuteInEditMode]
 public class CustomDeferredLight : MonoBehaviour
 {
-	public Color color = Color.white;
-	public float intensity = 1.0f;
-	public float range = 5.0f;
+	[SerializeField]
+	Color _color = Color.white;
+	[SerializeField]
+	float _intensity = 1.0f;
+	[SerializeField]
+	float _range = 5.0f;
+	[SerializeField]
+	Mesh _mesh;
+	[SerializeField]
+	bool _displayGizmo = true;
 
-	private MaterialPropertyBlock propertyBlock;
-	private Matrix4x4 matrix;
-	private Vector3 lastPosition;
-	private float lastRange;
+	// Use the new "DeferredLightWithEffect" shader for the custom light
+	[SerializeField]
+	Shader _lightShader;
+
+	MaterialPropertyBlock _propertyBlock;
+	Matrix4x4 _matrix;
+	Vector3 _lastPosition;
+	float _lastRange;
 
 	private void OnEnable()
 	{
@@ -33,36 +44,48 @@ public class CustomDeferredLight : MonoBehaviour
 
 	public MaterialPropertyBlock GetPropertyBlock()
 	{
-		if (propertyBlock == null)
+		if (_propertyBlock == null)
 		{
-			propertyBlock = new MaterialPropertyBlock();
+			_propertyBlock = new MaterialPropertyBlock();
 		}
 		else
 		{
-			propertyBlock.Clear();
+			_propertyBlock.Clear();
 		}
 
-		propertyBlock.SetColor("_LightColor", color * intensity);
-		propertyBlock.SetFloat("_LightRange", range);
+		_propertyBlock.SetColor("_LightColor", _color * _intensity);
+		_propertyBlock.SetFloat("_LightRange", _range);
 
-		return propertyBlock;
+		return _propertyBlock;
 	}
 
 	public Matrix4x4 GetTransformMatrix()
 	{
-		if (lastPosition != transform.position || lastRange != range)
+		if (_lastPosition != transform.position || _lastRange != _range)
 		{
-			matrix = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one * range * 2);
-			lastPosition = transform.position;
-			lastRange = range;
+			_matrix = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one * _range * 2);
+			_lastPosition = transform.position;
+			_lastRange = _range;
 		}
 
-		return matrix;
+		return _matrix;
+	}
+
+	public Mesh GetMesh()
+	{
+		return _mesh;
+	}
+
+	public Shader GetLightShader()
+	{
+		return _lightShader;
 	}
 
 	private void OnDrawGizmos()
 	{
-		Gizmos.color = color;
-		Gizmos.DrawWireSphere(transform.position, range);
+		if (!_displayGizmo) return;
+
+		Gizmos.color = _color;
+		Gizmos.DrawWireMesh(_mesh, 0, transform.position, transform.rotation, Vector3.one * _range * 2);
 	}
 }
