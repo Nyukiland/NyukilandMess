@@ -2,17 +2,26 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+public delegate void RefreshSpline();
+
 [ExecuteInEditMode]
 public class PathSystem : MonoBehaviour
 {
-	[SerializeField]
-	private List<PathPoint> _controlPoints = new();
+	[Header ("Settings")]
+	public List<PathPoint> _controlPoints = new();
 
 	[SerializeField, Min(0)]
 	private int _resolution;
 
 	[SerializeField]
+	private bool _ended;
+
+	[Header ("Debug")]
+
+	[SerializeField, ReadOnly]
 	List<PathStorage> _pathPoint = new();
+
+	public event RefreshSpline RefreshSplineEvent;
 
 	private void Update()
 	{
@@ -43,12 +52,28 @@ public class PathSystem : MonoBehaviour
 				Size = _controlPoints[i].MidPoint.localScale.x
 			};
 
-			PathStorage lastPoint = new PathStorage
+			PathStorage lastPoint = new PathStorage();
+
+			if (_ended)
 			{
-				Pos = (i + 1 < _controlPoints.Count) ? _controlPoints[i + 1].MainPoint.position : _controlPoints[0].MainPoint.position,
-				Rot = (i + 1 < _controlPoints.Count) ? _controlPoints[i + 1].MainPoint.eulerAngles : _controlPoints[0].MainPoint.eulerAngles,
-				Size = (i + 1 < _controlPoints.Count) ? _controlPoints[i + 1].MainPoint.localScale.x : _controlPoints[0].MainPoint.localScale.x
-			};
+				lastPoint = new PathStorage()
+				{
+					Pos = (i + 1 < _controlPoints.Count) ? _controlPoints[i + 1].MainPoint.position : _controlPoints[0].MainPoint.position,
+					Rot = (i + 1 < _controlPoints.Count) ? _controlPoints[i + 1].MainPoint.eulerAngles : _controlPoints[0].MainPoint.eulerAngles,
+					Size = (i + 1 < _controlPoints.Count) ? _controlPoints[i + 1].MainPoint.localScale.x : _controlPoints[0].MainPoint.localScale.x
+				};
+			}
+			else
+			{
+				if ((i + 1 >= _controlPoints.Count)) break;
+
+				lastPoint = new PathStorage()
+				{
+					Pos = _controlPoints[i + 1].MainPoint.position,
+					Rot = _controlPoints[i + 1].MainPoint.eulerAngles,
+					Size = _controlPoints[i + 1].MainPoint.localScale.x
+				};
+			}
 
 			tempList.Add(firstPoint);
 
@@ -88,7 +113,11 @@ public class PathSystem : MonoBehaviour
 #if UNITY_EDITOR
 		if (Application.isPlaying) return;
 
-		if (!IsSimilar(_controlPoints, _previousPoints) || _pathPoint.Count == 0) GeneratePath();
+		if (!IsSimilar(_controlPoints, _previousPoints) || _pathPoint.Count == 0)
+		{
+			GeneratePath();
+			RefreshSplineEvent?.Invoke();
+		}
 
 #endif
 	}
@@ -140,13 +169,19 @@ public class PathSystem : MonoBehaviour
 			Gizmos.color = Color.blue;
 			Gizmos.DrawLine(_controlPoints[t].MainPoint.position, _controlPoints[t].MidPoint.position);
 			if (t + 1 < _controlPoints.Count) Gizmos.DrawLine(_controlPoints[t].MidPoint.position, _controlPoints[t + 1].MainPoint.position);
-			else Gizmos.DrawLine(_controlPoints[t].MidPoint.position, _controlPoints[0].MainPoint.position);
+			else
+			{
+				if (_ended) Gizmos.DrawLine(_controlPoints[t].MidPoint.position, _controlPoints[0].MainPoint.position);
+			}
 		}
 
 		Gizmos.color = Color.white;
 		for (int i = 0; i < _pathPoint.Count; i++)
 		{
-			if (i + 1 >= _pathPoint.Count) Gizmos.DrawLine(_pathPoint[i].Pos, _pathPoint[0].Pos);
+			if (i + 1 >= _pathPoint.Count)
+			{
+				if (_ended) Gizmos.DrawLine(_pathPoint[i].Pos, _pathPoint[0].Pos);
+			}
 			else Gizmos.DrawLine(_pathPoint[i].Pos, _pathPoint[i + 1].Pos);
 		}
 	}
@@ -158,25 +193,29 @@ public class PathSystem : MonoBehaviour
 		public Vector3 localScale;
 	}
 	#endregion
+}
 
-	[Serializable]
-	public struct PathPoint
-	{
-		public Transform MainPoint;
-		[SerializeField]
-		private Transform _midPoint;
-		public Transform MidPoint
-		{
-			get => _midPoint;
-			set => _midPoint = value != null ? value : null;
-		}
-	}
+[Serializable]
+public struct PathPoint
+{
+	public Transform MainPoint;
 
-	[Serializable]
-	public struct PathStorage
+	[Min(2)]
+	public int _shapeCount;
+
+	[SerializeField]
+	private Transform _midPoint;
+	public Transform MidPoint
 	{
-		public Vector3 Pos;
-		public Vector3 Rot;
-		public float Size;
+		get => _midPoint;
+		set => _midPoint = value != null ? value : null;
 	}
+}
+
+[Serializable]
+public struct PathStorage
+{
+	public Vector3 Pos;
+	public Vector3 Rot;
+	public float Size;
 }
