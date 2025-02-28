@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Threading;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.Splines;
-using Debug = UnityEngine.Debug;
 
 [RequireComponent(typeof(MeshRenderer), typeof(MeshFilter), typeof(PathSystem))]
 [ExecuteInEditMode]
@@ -37,43 +35,146 @@ public class ExtrudeAlongPath : MonoBehaviour
 			_filter = GetComponent<MeshFilter>();
 			_path = GetComponent<PathSystem>();
 		}
-		
+
 		GenerateWithPoint();
 	}
 
 	void GenerateWithPoint()
 	{
-		List<Vector3> vertices = new List<Vector3>();
-		List<int> triangles = new List<int>();
+		List<PointFace> pointFaces = new();
+		List<Vector3> baseVertices = new();
+		List<Vector3> finalVertices = new();
+		List<int> triangles = new();
 
+		int globalIndex = 0;
+
+		//generate points
 		foreach (PathPoint point in _path._controlPoints)
 		{
-			int index = Mathf.Clamp(vertices.Count, 0, 1000000);
-			Vector3[] points = GenerateCirclePoints(point.MainPoint.position, point.MainPoint.forward, point._shapeCount);
-			vertices.AddRange(points);
-			vertices.Add(point.MainPoint.position);
+			Vector3[] points = GenerateCirclePoints(Vector3.zero, Vector3.forward, point._shapeCount);
+			PointFace face = new(points.ToList(), Enumerable.Range(globalIndex, points.Length).ToList());
+			pointFaces.Add(face);
+			baseVertices.AddRange(points);
+			globalIndex += points.Length;
+		}
 
-			for (int i = index; i < vertices.Count -1; i++)
+		finalVertices = new List<Vector3>(baseVertices);
+
+		//draw face
+		foreach (PointFace face in pointFaces)
+		{
+			int centerIndex = finalVertices.Count;
+			face.CenterIndex = centerIndex;
+			finalVertices.Add(Vector3.zero);
+
+			for (int i = 0; i < face.Vertices.Count; i++)
 			{
-				int pointA = i;
-				int pointB = i + 1;
-				if (pointB >= vertices.Count-1) pointB = index;
+				int pointA = face.Indices[i];
+				int pointB = face.Indices[(i + 1) % face.Vertices.Count];
 
 				triangles.Add(pointA);
 				triangles.Add(pointB);
-				triangles.Add(vertices.Count-1);
+				triangles.Add(centerIndex);
+			}
+		}
+
+		//connect face i and face i + 1
+		for (int i = 0; i < pointFaces.Count - 1; i++)
+		{
+			PointFace faceA = pointFaces[i];
+			PointFace faceB = pointFaces[i + 1];
+
+			//create triangle based on the closest vertice
+			for (int j = 0; j < faceA.Vertices.Count; j++)
+			{
+				int indexA1 = faceA.Indices[j];
+				int indexA2 = faceA.Indices[(j + 1) % faceA.Vertices.Count];
+				int indexB1 = faceB.Indices[FindClosestPoint(faceB.Vertices, faceA.Vertices[j])];
+				int indexB2 = faceB.Indices[FindClosestPoint(faceB.Vertices, faceA.Vertices[(j + 1) % faceA.Vertices.Count])];
+
+				if (indexA1 < finalVertices.Count && indexA2 < finalVertices.Count &&
+					indexB1 < finalVertices.Count && indexB2 < finalVertices.Count)
+				{
+					triangles.Add(indexA1);
+					triangles.Add(indexB1);
+					triangles.Add(indexA2);
+
+					triangles.Add(indexA2);
+					triangles.Add(indexB1);
+					triangles.Add(indexB2);
+				}
+				else
+				{
+					Debug.LogError($"Invalid triangle indices: A1: {indexA1}, A2: {indexA2}, B1: {indexB1}, B2: {indexB2}");
+				}
+			}
+		}
+
+		int vertIndex = 0;
+
+		foreach (PathPoint point in _path._controlPoints)
+		{
+			Quaternion rotation = Quaternion.LookRotation(point.MainPoint.forward);
+			Vector3 offset = point.MainPoint.position;
+			for (int j = 0; j < point._shapeCount; j++)
+			{
+				if (vertIndex < finalVertices.Count)
+				{
+					finalVertices[vertIndex] = rotation * baseVertices[vertIndex] + offset;
+				}
+				else
+				{
+					Debug.LogError($"Vertex index out of range: {vertIndex} (finalVertices size: {finalVertices.Count})");
+				}
+				vertIndex++;
+			}
+		}
+
+		foreach (PointFace face in pointFaces)
+		{
+			if (face.CenterIndex < finalVertices.Count)
+			{
+				finalVertices[face.CenterIndex] = _path._controlPoints[pointFaces.IndexOf(face)].MainPoint.position;
 			}
 		}
 
 		Mesh mesh = new();
-		mesh.vertices = vertices.ToArray();
-		mesh.triangles = triangles.ToArray();
+		mesh.vertices = finalVertices.ToArray();
 
+		for (int i = 0; i < triangles.Count; i++)
+		{
+			if (triangles[i] < 0 || triangles[i] >= finalVertices.Count)
+			{
+				Debug.LogError($"Triangle index out of bounds: {triangles[i]} (VertexCount: {finalVertices.Count})");
+			}
+		}
+
+		mesh.triangles = triangles.ToArray();
 		mesh.RecalculateNormals();
 
 		_filter.mesh = mesh;
 	}
 
+	//get the vertice closest
+	int FindClosestPoint(List<Vector3> face, Vector3 target)
+	{
+		int closestIndex = 0;
+		float closestDistance = float.MaxValue;
+
+		for (int i = 0; i < face.Count; i++)
+		{
+			float dist = Vector3.Distance(face[i], target);
+			if (dist < closestDistance)
+			{
+				closestDistance = dist;
+				closestIndex = i;
+			}
+		}
+
+		return closestIndex;
+	}
+
+	//generate the point on a circle
 	Vector3[] GenerateCirclePoints(Vector3 position, Vector3 forward, int numPoints, float radius = 1f)
 	{
 		Vector3[] points = new Vector3[numPoints];
@@ -91,5 +192,19 @@ public class ExtrudeAlongPath : MonoBehaviour
 		}
 
 		return points;
+	}
+
+	public class PointFace
+	{
+		public List<Vector3> Vertices;
+		public List<int> Indices;
+		public int CenterIndex;
+
+		public PointFace(List<Vector3> vertices, List<int> indices)
+		{
+			Vertices = vertices;
+			Indices = indices;
+			CenterIndex = -1;
+		}
 	}
 }
