@@ -51,7 +51,7 @@ public class ExtrudeAlongPath : MonoBehaviour
 		//generate points
 		foreach (PathPoint point in _path._controlPoints)
 		{
-			Vector3[] points = GenerateCirclePoints(Vector3.zero, Vector3.forward, point._shapeCount);
+			Vector3[] points = GenerateCirclePoints(Vector3.zero, Vector3.forward, point.ShapeCount);
 			PointFace face = new(points.ToList(), Enumerable.Range(globalIndex, points.Length).ToList());
 			pointFaces.Add(face);
 			baseVertices.AddRange(points);
@@ -116,7 +116,7 @@ public class ExtrudeAlongPath : MonoBehaviour
 		{
 			Quaternion rotation = Quaternion.LookRotation(point.MainPoint.forward);
 			Vector3 offset = point.MainPoint.position;
-			for (int j = 0; j < point._shapeCount; j++)
+			for (int j = 0; j < point.ShapeCount; j++)
 			{
 				if (vertIndex < finalVertices.Count)
 				{

@@ -201,7 +201,7 @@ public struct PathPoint
 	public Transform MainPoint;
 
 	[Min(2)]
-	public int _shapeCount;
+	public int ShapeCount;
 
 	[SerializeField]
 	private Transform _midPoint;
