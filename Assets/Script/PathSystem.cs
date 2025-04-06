@@ -207,8 +207,8 @@ public struct PathPoint
 	private Transform _midPoint;
 	public Transform MidPoint
 	{
-		get => _midPoint;
-		set => _midPoint = value != null ? value : null;
+		get => _midPoint == null? MainPoint : _midPoint;
+		set => _midPoint = value != null ? value : MainPoint;
 	}
 }
 

@@ -77,7 +77,7 @@ public class ExtrudeAlongPath : MonoBehaviour
 				triangles.Add(centerIndex);
 			}
 		}
-
+		
 		//connect face i and face i + 1
 		for (int i = 0; i < pointFaces.Count - 1; i++)
 		{
@@ -109,7 +109,7 @@ public class ExtrudeAlongPath : MonoBehaviour
 				}
 			}
 		}
-
+		
 		int vertIndex = 0;
 
 		foreach (PathPoint point in _path._controlPoints)
