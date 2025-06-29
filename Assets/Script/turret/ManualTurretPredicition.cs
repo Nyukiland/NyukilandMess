@@ -90,8 +90,6 @@ public class ManualTurretPredicition : MonoBehaviour
 
 	private void OnDrawGizmos()
 	{
-		if (!showDebugGizmos || !muzzle) return;
-
 		Vector3 pos = muzzle.position;
 		Vector3 toPredicted = predictedPosition - pos;
 		float dx = new Vector2(toPredicted.x, toPredicted.z).magnitude;
