@@ -1,0 +1,16 @@
+{
+    "name": "Modules.CustomAttributeEditor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:43764f8f9877c924a9ecb23f87efa586"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

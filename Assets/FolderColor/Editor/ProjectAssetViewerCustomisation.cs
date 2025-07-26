@@ -68,7 +68,7 @@ namespace FolderColor
 			}
         }
 
-        // Validate function to enable/disable the menu item
+        // OnValidate function to enable/disable the menu item
         [MenuItem("Assets/Custom Folder", true)]
         private static bool ValidateCustomModificationMenuItem()
         {
