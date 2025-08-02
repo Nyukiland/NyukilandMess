@@ -1,0 +1,12 @@
+using Modules.StateMachine
+using UnityEngine;
+
+#NAMESPACE_START#
+public class #SCRIPTNAME# : CombinedState
+{
+	public #SCRIPTNAME#()
+	{
+		
+	}
+}
+#NAMESPACE_END#

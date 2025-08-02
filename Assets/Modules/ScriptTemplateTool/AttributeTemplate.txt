@@ -1,0 +1,11 @@
+using UnityEngine;
+
+#NAMESPACE_START#
+/// <summary>
+/// Something
+/// </summary>
+public class #SCRIPTNAME# : PropertyAttribute
+{
+	
+}
+#NAMESPACE_END#

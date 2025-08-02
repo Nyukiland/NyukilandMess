@@ -3,9 +3,12 @@ using System;
 
 namespace Modules.CustomAttribute
 {
+	/// <summary>
+	/// Display a drawer of given type
+	/// </summary>
 	public class TypeSelectorAttribute : PropertyAttribute
 	{
-		public Type Type { get; private set; }
+		public Type Type { get; }
 
 		public TypeSelectorAttribute(Type type)
 		{

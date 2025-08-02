@@ -1,0 +1,9 @@
+using UnityEditor;
+using UnityEngine;
+
+#NAMESPACE_START#
+public class #SCRIPTNAME# : Editor
+{
+
+}
+#NAMESPACE_END#

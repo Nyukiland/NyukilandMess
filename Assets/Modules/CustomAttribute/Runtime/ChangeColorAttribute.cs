@@ -2,9 +2,13 @@ using UnityEngine;
 
 namespace Modules.CustomAttribute
 {
+	/// <summary>
+	/// Change color of the var
+	/// Use Hexadecimal or RGB
+	/// </summary>
 	public class ChangeColorAttribute : PropertyAttribute
 	{
-		public Color Color { get; private set; }
+		public Color Color { get; }
 
 		ChangeColorAttribute(string hexaDecimal)
 		{
