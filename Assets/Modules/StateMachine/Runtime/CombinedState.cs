@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 namespace Modules.StateMachine
 {
-	public class CombinedState : State
+	public abstract class CombinedState : State
 	{
 		private readonly List<State> _subStates = new();
 
