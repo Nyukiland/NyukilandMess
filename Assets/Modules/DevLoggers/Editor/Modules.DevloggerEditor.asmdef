@@ -1,0 +1,16 @@
+{
+    "name": "Modules.DevloggersEditor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:8ad93342031e480439986c2c00a3e65b"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

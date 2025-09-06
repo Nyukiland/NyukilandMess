@@ -11,6 +11,10 @@ namespace Modules.StateMachine
 		[Header("Set Up")]
 
 		[SerializeField]
+		private bool _useSpecificController = false;
+
+		[SerializeField]
+		[HideWhenBool(nameof(_useSpecificController))]
 		private int _playerIndex = 0;
 
 		[Space(10)]
@@ -54,8 +58,12 @@ namespace Modules.StateMachine
 			if (!_useDifferentFirstState) SetDefaultState();
 			else SetState(Type.GetType(_firstState));
 
-			InputSystem.actions.FindActionMap("Player").Enable();
-			InputSystem.actions.FindActionMap("Player").actionTriggered += OnActionTriggered;
+			InputActionMap map = InputSystem.actions?.FindActionMap("Player");
+			if (map != null)
+			{
+				map.Disable();
+				map.actionTriggered -= OnActionTriggered;
+			}
 		}
 
 		private void OnDisable()
@@ -65,8 +73,12 @@ namespace Modules.StateMachine
 				comp.OnDisableController();
 			}
 
-			InputSystem.actions.FindActionMap("Player").Disable();
-			InputSystem.actions.FindActionMap("Player").actionTriggered -= OnActionTriggered;
+			InputActionMap map = InputSystem.actions?.FindActionMap("Player");
+			if (map != null)
+			{
+				map.Disable();
+				map.actionTriggered -= OnActionTriggered;
+			}
 		}
 
 		public void Update()
@@ -137,8 +149,8 @@ namespace Modules.StateMachine
 		{
 			InputAction action = InputSystem.actions.FindAction(actionName);
 
-			if (action == null || 
-				Gamepad.all[_playerIndex] != action.activeControl.device)
+			if (action == null ||
+				(_useSpecificController && Gamepad.all[_playerIndex] != action.activeControl.device))
 				return default;
 
 			return action.ReadValue<T>();
@@ -146,7 +158,7 @@ namespace Modules.StateMachine
 
 		private void OnActionTriggered(InputAction.CallbackContext context)
 		{
-			if (Gamepad.all[_playerIndex] != context.control.device)
+			if (_useSpecificController && Gamepad.all[_playerIndex] != context.control.device)
 				return;
 
 			_state?.OnActionTriggered(context);

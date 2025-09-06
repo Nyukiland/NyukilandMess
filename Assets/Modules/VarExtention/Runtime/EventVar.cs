@@ -17,7 +17,7 @@ namespace Modules.VarExtention
 			get => _value;
 			set
 			{
-				OnValueChanged.Invoke(value);
+				OnValueChanged?.Invoke(value);
 				_value = value;
 			}
 		}
