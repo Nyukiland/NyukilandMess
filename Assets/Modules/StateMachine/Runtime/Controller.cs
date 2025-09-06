@@ -3,12 +3,17 @@ using Modules.CustomAttribute;
 using UnityEngine.InputSystem;
 using UnityEngine;
 using System;
-using System.Linq;
 
 namespace Modules.StateMachine
 {
 	public class Controller : MonoBehaviour
 	{
+		[Header("Set Up")]
+
+		[SerializeField]
+		private int _playerIndex = 0;
+
+		[Space(10)]
 		[Header("State")]
 
 		[SerializeField]
@@ -24,7 +29,6 @@ namespace Modules.StateMachine
 		private string _firstState;
 
 		[Space(10)]
-
 		[Header("Components")]
 
 		[SerializeField]
@@ -132,11 +136,19 @@ namespace Modules.StateMachine
 		public T GetActionValue<T>(string actionName) where T : struct
 		{
 			InputAction action = InputSystem.actions.FindAction(actionName);
-			return action != null ? action.ReadValue<T>() : default;
+
+			if (action == null || 
+				Gamepad.all[_playerIndex] != action.activeControl.device)
+				return default;
+
+			return action.ReadValue<T>();
 		}
 
 		private void OnActionTriggered(InputAction.CallbackContext context)
 		{
+			if (Gamepad.all[_playerIndex] != context.control.device)
+				return;
+
 			_state?.OnActionTriggered(context);
 		}
 

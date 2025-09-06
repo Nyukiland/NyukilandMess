@@ -2,6 +2,7 @@ using Modules.CustomAttribute;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using System;
 
 namespace Modules.CustomAttributeEditor 
 {
@@ -11,8 +12,11 @@ namespace Modules.CustomAttributeEditor
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 		{
 			InvokeButtonAttribute buttonAttribute = (InvokeButtonAttribute)attribute;
-			Object target = property.serializedObject.targetObject;
+			object target = GetTargetObjectOfProperty(property);
+			if (target == null) return;
+
 			System.Type targetType = target.GetType();
+
 			FieldInfo fieldInfo = targetType.GetField(property.name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
 			string warning = null;
@@ -39,7 +43,8 @@ namespace Modules.CustomAttributeEditor
 
 			if (GUI.Button(buttonRect, buttonAttribute.MethodName))
 			{
-				MethodInfo method = targetType.GetMethod(buttonAttribute.MethodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+				MethodInfo method = targetType.GetMethod(buttonAttribute.MethodName,
+					BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
 				if (method != null)
 				{
@@ -47,14 +52,61 @@ namespace Modules.CustomAttributeEditor
 				}
 				else
 				{
-					UnityEngine.Debug.LogWarning($"Method '{buttonAttribute.MethodName}' not found on {targetType.Name}");
+					Debug.LogWarning($"Method '{buttonAttribute.MethodName}' not found on {targetType.Name}");
 				}
 			}
 		}
 
+		private static object GetTargetObjectOfProperty(SerializedProperty property)
+		{
+			if (property == null) return null;
+
+			object obj = property.serializedObject.targetObject;
+			string path = property.propertyPath.Replace(".Array.data[", "[");
+			string[] elements = path.Split('.');
+
+			foreach (string element in elements)
+			{
+				if (element.Contains("["))
+				{
+					string elementName = element.Substring(0, element.IndexOf("["));
+					int index = Convert.ToInt32(
+						element.Substring(element.IndexOf("[")).Replace("[", "").Replace("]", "")
+					);
+					obj = GetValue(obj, elementName, index);
+				}
+				else
+				{
+					obj = GetValue(obj, element);
+				}
+			}
+			return obj;
+		}
+
+		private static object GetValue(object source, string name)
+		{
+			if (source == null) return null;
+			var type = source.GetType();
+			var f = type.GetField(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+			if (f != null) return f.GetValue(source);
+			var p = type.GetProperty(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+			if (p != null) return p.GetValue(source, null);
+			return null;
+		}
+
+		private static object GetValue(object source, string name, int index)
+		{
+			var enumerable = GetValue(source, name) as System.Collections.IEnumerable;
+			if (enumerable == null) return null;
+			var enm = enumerable.GetEnumerator();
+			for (int i = 0; i <= index; i++)
+				if (!enm.MoveNext()) return null;
+			return enm.Current;
+		}
+
 		public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
 		{
-			Object target = property.serializedObject.targetObject;
+			System.Object target = property.serializedObject.targetObject;
 			System.Type targetType = target.GetType();
 			FieldInfo fieldInfo = targetType.GetField(property.name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 

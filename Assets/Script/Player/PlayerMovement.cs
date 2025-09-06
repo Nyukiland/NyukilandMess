@@ -33,7 +33,7 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-		Vector3 veloToApply = _rb.velocity;
+		Vector3 veloToApply = _rb.linearVelocity;
 
 		Physics.Raycast(transform.position, -transform.up, out RaycastHit hit, Mathf.Infinity, ~_layerToIgnore);
 
@@ -43,6 +43,6 @@ public class PlayerMovement : MonoBehaviour
 
 		transform.position = new Vector3(transform.position.x, hit.point.y + _distFromGround, transform.position.z);
 
-		_rb.velocity = new Vector3(_moveInput.x * _speed, veloToApply.y, _moveInput.y * _speed);
+		_rb.linearVelocity = new Vector3(_moveInput.x * _speed, veloToApply.y, _moveInput.y * _speed);
     }
 }
