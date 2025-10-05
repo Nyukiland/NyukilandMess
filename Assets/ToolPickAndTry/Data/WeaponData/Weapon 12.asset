@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d7ce38d30121494796d4eaaafc5ccf1, type: 3}
+  m_Name: Weapon 12
+  m_EditorClassIdentifier: 
+  _id: -166673856
+  _weaponName: this one
+  _price: 68
+  _power: 696
+  _isRanged: 1
+  _rarity: 2
