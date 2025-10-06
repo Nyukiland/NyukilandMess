@@ -10,11 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca62fd761bd60994e9492b0e2f370e63, type: 3}
-  m_Name: temp
+  m_Name: rare
   m_EditorClassIdentifier: 
-  _listName: temp
+  _listName: rare
   _weaponDatas:
-  - {fileID: 11400000, guid: 76fdf5b6095446447b0f5a2d88a9ff6d, type: 2}
-  - {fileID: 11400000, guid: 3540b170daed6aa4cb207b3dec23f0c0, type: 2}
   - {fileID: 11400000, guid: 2761565dcc231834a96f31c45ea186ee, type: 2}
-  - {fileID: 11400000, guid: 306df4a4e0842c0439516e0aa5a78833, type: 2}
+  - {fileID: 11400000, guid: 9f374b11952b0f343b1f65e1b6e1a355, type: 2}
+  - {fileID: 11400000, guid: a3498ef69f11b814d985dcf3fec10455, type: 2}
+  - {fileID: 11400000, guid: cdc8a171e504e484d80f71155a9b58a6, type: 2}
+  - {fileID: 11400000, guid: 1cefdb18dc857a64da112378d62ae350, type: 2}
