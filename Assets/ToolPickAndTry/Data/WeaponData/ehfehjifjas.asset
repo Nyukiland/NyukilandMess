@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d7ce38d30121494796d4eaaafc5ccf1, type: 3}
-  m_Name: Weapon 13
+  m_Name: ehfehjifjas
   m_EditorClassIdentifier: 
-  _id: -1406649667
-  _weaponName: nope
+  _id: 0
+  _weaponName: ehfehjifjas
   _price: 10
-  _power: -100
-  _isRanged: 1
+  _power: 20
+  _isRanged: 0
   _rarity: 3

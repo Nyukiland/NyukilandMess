@@ -1,14 +1,18 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 using WeaponData;
+using System.IO;
+using System;
 
 namespace WeaponDataEditor
 {
 	public class WeaponDataWindow : EditorWindow
 	{
-		private bool _weaponMode = false;
+		public bool WeaponMode = false;
 
 		private List<WeaponDataScriptable> _allWeaponDatas;
 		private List<WeaponDataListScriptable> _allWeaponDataList;
@@ -32,6 +36,20 @@ namespace WeaponDataEditor
 
 		private Editor _listInspectorEditor;
 
+		private string _pathToData
+		{
+			get
+			{
+				string[] guids = AssetDatabase.FindAssets($"{nameof(WeaponDataWindow)} t:script");
+				string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+				path = path.Replace($"Editor/{nameof(WeaponDataWindow)}.cs", $"Data/");
+				return path;
+			}
+		}
+
+		private string _pathToWeaponList => _pathToData + "WeaponDataList/";
+		private string _pathToWeapons => _pathToData + "WeaponData/";
+
 		[MenuItem("Tools/WeaponData Manager")]
 		public static void ShowWindow()
 		{
@@ -45,7 +63,8 @@ namespace WeaponDataEditor
 			WeaponDataWindow window = GetWindow<WeaponDataWindow>();
 			window.titleContent = new GUIContent("WeaponData Manager");
 			window.Show();
-			window.CurrentEditedWeaponDataList = weaponDataList;
+			window.WeaponMode = true;
+			window.PrepareListForEditing(weaponDataList);
 		}
 
 		private void OnEnable()
@@ -77,13 +96,12 @@ namespace WeaponDataEditor
 			GUILayout.Label("WeaponData Manager", titleStyle);
 			GUILayout.Space(20);
 
-			// Toolbar
 			GUILayout.BeginHorizontal(EditorStyles.toolbar);
-			if (GUILayout.Toggle(_weaponMode, "Weapon Data", EditorStyles.toolbarButton))
-				_weaponMode = true;
+			if (GUILayout.Toggle(WeaponMode, "Weapon Data", EditorStyles.toolbarButton))
+				WeaponMode = true;
 
-			if (GUILayout.Toggle(!_weaponMode, "Lists", EditorStyles.toolbarButton))
-				_weaponMode = false;
+			if (GUILayout.Toggle(!WeaponMode, "Lists", EditorStyles.toolbarButton))
+				WeaponMode = false;
 			GUILayout.FlexibleSpace();
 
 			if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.Width(80)))
@@ -93,7 +111,7 @@ namespace WeaponDataEditor
 
 			GUILayout.Space(10);
 
-			if (_weaponMode)
+			if (WeaponMode)
 				DrawWeaponDataView();
 			else
 				DrawListView();
@@ -102,6 +120,25 @@ namespace WeaponDataEditor
 		#region WeaponData
 		private void DrawWeaponDataView()
 		{
+			EditorGUILayout.LabelField("CSV Option", EditorStyles.boldLabel);
+
+			GUILayout.BeginHorizontal();
+
+			if (GUILayout.Button("Import CSV"))
+			{
+				ImportWeaponDataFromCSV();
+				RefreshData();
+				GUILayout.EndHorizontal();
+				return;
+			}
+			if (GUILayout.Button("Export To CSV"))
+			{
+				ExportWeaponDataToCSV();
+			}
+
+			GUILayout.EndHorizontal();
+
+			GUILayout.Space(15);
 			EditorGUILayout.LabelField("Filter Options", EditorStyles.boldLabel);
 
 			GUILayout.BeginHorizontal();
@@ -160,6 +197,8 @@ namespace WeaponDataEditor
 			_scrollPos = GUILayout.BeginScrollView(_scrollPos);
 			foreach (var weapon in filtered)
 			{
+				bool isSelected = _selected.Contains(weapon);
+				GUI.backgroundColor = isSelected ? Color.blue : Color.white;
 				GUILayout.BeginVertical(EditorStyles.helpBox);
 				GUILayout.BeginHorizontal();
 
@@ -169,7 +208,6 @@ namespace WeaponDataEditor
 				EditorGUILayout.ObjectField("Asset", weapon, typeof(WeaponDataScriptable), false);
 				GUILayout.EndVertical();
 
-				bool isSelected = _selected.Contains(weapon);
 				bool newToggle = GUILayout.Toggle(isSelected, GUIContent.none, GUILayout.Width(20), GUILayout.Height(50));
 				if (newToggle != isSelected)
 				{
@@ -260,10 +298,140 @@ namespace WeaponDataEditor
 				if (GUILayout.Button("Modify This List", GUILayout.Height(30)))
 				{
 					PrepareListForEditing(CurrentEditedWeaponDataList);
-					_weaponMode = true;
+					WeaponMode = true;
 				}
 			}
 		}
+		#endregion
+
+		#region CSV
+		private void ImportWeaponDataFromCSV()
+		{
+			string path = EditorUtility.OpenFilePanel("Import Weapon Data from CSV", "", "csv");
+			if (string.IsNullOrEmpty(path)) return;
+
+			var lines = File.ReadAllLines(path);
+			if (lines.Length <= 1)
+			{
+				EditorUtility.DisplayDialog("Error", "CSV file is empty or invalid.", "OK");
+				return;
+			}
+
+			int created = 0, updated = 0;
+			for (int i = 1; i < lines.Length; i++)
+			{
+				string[] cols = ParseCSVLine(lines[i]);
+				if (cols.Length < 5) continue;
+
+				string name = cols[0];
+				int price = int.Parse(cols[1]);
+				float power = ParseFloatSafe(cols[2]);
+				bool isRanged = bool.Parse(cols[3]);
+				Rarity rarity = Enum.TryParse(cols[4], out Rarity r) ? r : Rarity.Common;
+
+				var existing = _allWeaponDatas.FirstOrDefault(w => w.WeaponName == name);
+				if (existing == null)
+				{
+					WeaponDataScriptable newWeapon = ScriptableObject.CreateInstance<WeaponDataScriptable>();
+					SetPrivateField(newWeapon, "_weaponName", name);
+					SetPrivateField(newWeapon, "_price", price);
+					SetPrivateField(newWeapon, "_power", power);
+					SetPrivateField(newWeapon, "_isRanged", isRanged);
+					SetPrivateField(newWeapon, "_rarity", rarity);
+
+					string assetPath = _pathToWeapons + $"{name}.asset";
+					AssetDatabase.CreateAsset(newWeapon, assetPath);
+					created++;
+				}
+				else
+				{
+					SetPrivateField(existing, "_price", price);
+					SetPrivateField(existing, "_power", power);
+					SetPrivateField(existing, "_isRanged", isRanged);
+					SetPrivateField(existing, "_rarity", rarity);
+					EditorUtility.SetDirty(existing);
+					updated++;
+				}
+			}
+
+			AssetDatabase.SaveAssets();
+			RefreshData();
+			EditorUtility.DisplayDialog("Import Complete", $"Created: {created} \nUpdated: {updated}", "OK");
+		}
+
+		private void ExportWeaponDataToCSV()
+		{
+			string path = EditorUtility.SaveFilePanel("Export Weapon Data to CSV", "", "WeaponData.csv", "csv");
+			if (string.IsNullOrEmpty(path)) return;
+
+			StringBuilder csv = new();
+			csv.AppendLine("WeaponName,Price,Power,IsRanged,Rarity");
+
+			foreach (var weapon in _allWeaponDatas)
+			{
+				string line = string.Format(CultureInfo.InvariantCulture,
+					"{0},{1},{2},{3},{4}",
+					CSVSpacing(weapon.WeaponName),
+					weapon.Price,
+					weapon.Power,
+					weapon.IsRanged,
+					weapon.Rarity);
+				csv.AppendLine(line);
+			}
+
+			File.WriteAllText(path, csv.ToString());
+			EditorUtility.DisplayDialog("Export Complete", $"Exported {_allWeaponDatas.Count} weapons to CSV in {path}", "OK");
+		}
+
+		private static string CSVSpacing(string input)
+		{
+			if (input.Contains(",") || input.Contains("\"") || input.Contains("\n"))
+				return $"\"{input.Replace("\"", "\"\"")}\"";
+			return input;
+		}
+
+		private static string[] ParseCSVLine(string line)
+		{
+			List<string> result = new();
+			bool inQuotes = false;
+			StringBuilder current = new();
+
+			foreach (char c in line)
+			{
+				if (c == '"' && !inQuotes)
+					inQuotes = true;
+				else if (c == '"' && inQuotes)
+					inQuotes = false;
+				else if (c == ',' && !inQuotes)
+				{
+					result.Add(current.ToString());
+					current.Clear();
+				}
+				else
+					current.Append(c);
+			}
+			result.Add(current.ToString());
+			return result.ToArray();
+		}
+
+		private float ParseFloatSafe(string input)
+		{
+			if (string.IsNullOrWhiteSpace(input))
+				return 0f;
+
+			input = input.Trim().Trim('"').Replace(" ", "").Replace(" ", "");
+
+			if (float.TryParse(input, NumberStyles.Float, CultureInfo.InvariantCulture, out float value))
+				return value;
+			if (float.TryParse(input, NumberStyles.Float, new CultureInfo("fr-FR"), out value))
+				return value;
+			if (float.TryParse(input.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+				return value;
+
+			Debug.LogWarning($"Could not parse float from '{input}', defaulting to 0.");
+			return 0f;
+		}
+
 		#endregion
 
 		private void CreateWeaponListAsset()
@@ -271,18 +439,12 @@ namespace WeaponDataEditor
 			WeaponDataListScriptable existing = _allWeaponDataList.FirstOrDefault(x => x.name == _newListName);
 			if (existing != null)
 			{
-				var field = typeof(WeaponDataListScriptable).GetField("_weaponDatas",
-					System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-				field.SetValue(existing, _selected.ToList());
+				SetPrivateField(existing, "_weaponDatas", _selected.ToList());
 				EditorUtility.SetDirty(existing);
-
 			}
 			else
 			{
-				string[] guids = AssetDatabase.FindAssets($"{nameof(WeaponDataWindow)} t:script");
-				string path = AssetDatabase.GUIDToAssetPath(guids[0]);
-				path = path.Replace($"Editor/{nameof(WeaponDataWindow)}.cs", $"Data/WeaponDataList/{_newListName}.asset");
+				string path = _pathToWeaponList + $"{_newListName}.asset";
 
 				WeaponDataListScriptable newList = new(_newListName, _selected.ToList());
 				AssetDatabase.CreateAsset(newList, path);
@@ -302,6 +464,12 @@ namespace WeaponDataEditor
 				_selected.Add(weapon);
 
 			_newListName = list.name;
+		}
+
+		private void SetPrivateField(object obj, string fieldName, object value)
+		{
+			var field = obj.GetType().GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+			field?.SetValue(obj, value);
 		}
 	}
 }

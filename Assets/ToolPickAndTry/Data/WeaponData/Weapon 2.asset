@@ -17,4 +17,4 @@ MonoBehaviour:
   _price: 45
   _power: 56
   _isRanged: 1
-  _rarity: 0
+  _rarity: 2

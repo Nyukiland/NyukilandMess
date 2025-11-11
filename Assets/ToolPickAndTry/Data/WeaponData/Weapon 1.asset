@@ -16,5 +16,5 @@ MonoBehaviour:
   _weaponName: thing
   _price: 2
   _power: 5
-  _isRanged: 0
+  _isRanged: 1
   _rarity: 0

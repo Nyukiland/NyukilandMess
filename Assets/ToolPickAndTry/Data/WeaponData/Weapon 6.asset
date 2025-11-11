@@ -15,6 +15,6 @@ MonoBehaviour:
   _id: 273948015
   _weaponName: cool
   _price: 0
-  _power: 10000
+  _power: 0
   _isRanged: 1
-  _rarity: 3
+  _rarity: 0
