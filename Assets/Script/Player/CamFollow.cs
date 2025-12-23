@@ -13,7 +13,7 @@ public class CamFollow : MonoBehaviour
         
     }
 
-    // Update is called once per frame
+    // ComponentUpdate is called once per frame
     void Update()
     {
         

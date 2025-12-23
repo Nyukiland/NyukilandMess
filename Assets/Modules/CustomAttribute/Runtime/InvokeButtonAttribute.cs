@@ -1,22 +1,19 @@
+using System;
 using UnityEngine;
 
 namespace Modules.CustomAttribute 
 {
 	/// <summary>
-	/// Displays a button in the Inspector to invoke a method by name.
-	/// 
-	///	-	Use this on a private field of type `byte`
-	///	-	Prefer marking the field with [SerializeField] for Unity serialization
-	/// 
-	/// !	This is recommended, yet not mandatory, to be in editor-only field	!
+	/// Displays a button in the Inspector
 	/// </summary>
-	public class InvokeButtonAttribute : PropertyAttribute
+	[AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
+	public class InvokeButtonAttribute : Attribute
 	{
-		public string MethodName { get; }
+		public string ButtonLabel { get; }
 
-		public InvokeButtonAttribute(string methodName)
+		public InvokeButtonAttribute(string name)
 		{
-			MethodName = methodName;
+			ButtonLabel = name;
 		}
 
 	}

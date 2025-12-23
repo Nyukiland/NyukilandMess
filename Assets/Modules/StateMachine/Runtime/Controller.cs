@@ -3,6 +3,7 @@ using Modules.CustomAttribute;
 using UnityEngine.InputSystem;
 using UnityEngine;
 using System;
+using System.Linq;
 
 namespace Modules.StateMachine
 {
@@ -32,25 +33,20 @@ namespace Modules.StateMachine
 		[TypeSelector(typeof(State))]
 		private string _firstState;
 
-		[Space(10)]
-		[Header("Components")]
-
-		[SerializeField]
-		[SerializeReference]
-		[SubClassSelector(typeof(StateComponent))]
 		private List<StateComponent> _components = new();
 
 		#region UnityMethod
 
 		protected virtual void Awake()
 		{
+			_components = GetComponents<StateComponent>().ToList();
 			_components.ForEach(comp => comp.EarlyInit());
 			_components.ForEach(comp => comp.InitController(controller: this));
 		}
 
 		protected virtual void Start()
 		{
-			_components.ForEach(comp => comp.LateInit());
+			_components.ForEach(comp => comp.ComponentLateInit());
 		}
 
 		private void OnEnable()
@@ -210,7 +206,7 @@ namespace Modules.StateMachine
 			foreach (StateComponent component in _components)
 			{
 				if (!component.Enabled) continue;
-				component.Update(deltaTime);
+				component.ComponentUpdate(deltaTime);
 			}
 		}
 
@@ -219,15 +215,7 @@ namespace Modules.StateMachine
 			foreach (StateComponent component in _components)
 			{
 				if (!component.Enabled) continue;
-				component.FixedUpdate(Time.fixedDeltaTime);
-			}
-		}
-
-		private void OnValidate()
-		{
-			for (int i = 0; i < _components.Count; i++)
-			{
-				if (_components[i] != null) _components[i].OnValidate();
+				component.ComponentFixedUpdate(Time.fixedDeltaTime);
 			}
 		}
 

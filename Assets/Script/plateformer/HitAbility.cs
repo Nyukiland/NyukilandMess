@@ -7,9 +7,9 @@ public class HitAbility : Ability
 {
 	private PhysicResource _physic;
 
-	public override void Init(Controller controller)
+	public override void ComponentInit(Controller controller)
 	{
-		base.Init(controller);
+		base.ComponentInit(controller);
 
 		_physic = controller.GetStateComponent<PhysicResource>();
 	}
