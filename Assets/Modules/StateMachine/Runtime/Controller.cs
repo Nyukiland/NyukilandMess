@@ -57,8 +57,8 @@ namespace Modules.StateMachine
 			InputActionMap map = InputSystem.actions?.FindActionMap("Player");
 			if (map != null)
 			{
-				map.Disable();
-				map.actionTriggered -= OnActionTriggered;
+				map.Enable();
+				map.actionTriggered += OnActionTriggered;
 			}
 		}
 
