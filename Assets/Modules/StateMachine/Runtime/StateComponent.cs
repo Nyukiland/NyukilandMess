@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Modules.StateMachine
 {
 	[System.Serializable]
-	public abstract class StateComponent
+	public abstract class StateComponent : MonoBehaviour
 	{
 		public bool Enabled { get; set; } = false;
 
@@ -20,18 +20,18 @@ namespace Modules.StateMachine
 			if (!CanChangeActivity)
 			{
 				Enabled = true;
-				OnEnable();
+				ComponentOnEnable();
 			}
 
-			Init(controller);
+			ComponentInit(controller);
 		}
 
 
-		public virtual void Init(Controller controller) { }
+		public virtual void ComponentInit(Controller controller) { }
 
-		public virtual void LateInit() { }
+		public virtual void ComponentLateInit() { }
 
-		public void SetActive(bool value)
+		public void ComponentSetActive(bool value)
 		{
 			if (value)
 				OnEnableController();
@@ -46,7 +46,7 @@ namespace Modules.StateMachine
 
 			if (CanChangeActivity) Enabled = true;
 
-			OnEnable();
+			ComponentOnEnable();
 		}
 
 		public void OnDisableController()
@@ -56,17 +56,15 @@ namespace Modules.StateMachine
 
 			if (CanChangeActivity) Enabled = false;
 
-			OnDisable();
+			ComponentOnDisable();
 		}
 
-		protected virtual void OnEnable() { }
+		protected virtual void ComponentOnEnable() { }
 
-		protected virtual void OnDisable() { }
+		protected virtual void ComponentOnDisable() { }
 
-		public virtual void Update(float deltaTime) { }
+		public virtual void ComponentUpdate(float deltaTime) { }
 
-		public virtual void FixedUpdate(float fixedDeltaTime) { }
-
-		public virtual void OnValidate() { }
+		public virtual void ComponentFixedUpdate(float fixedDeltaTime) { }
 	}
 }

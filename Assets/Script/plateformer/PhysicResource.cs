@@ -13,7 +13,7 @@ public class PhysicResource : Resource
 	private Rigidbody2D _rb;
 
 	[Space(10)]
-	[Header("Debug")]
+	[BeginFoldout("Debug")]
 
 	[SerializeField]
 	[Disable]
@@ -25,7 +25,7 @@ public class PhysicResource : Resource
 
 	[SerializeField]
 	[Disable]
-	private List<ForceIdentifier> _forceToProcess;
+	private List<ForceIdentifier> _forceToProcess = new();
 
 	public void AddForce(Vector3 force) => 
 		AddForce(new ForceIdentifier(force));
@@ -65,9 +65,9 @@ public class PhysicResource : Resource
 		StopAllForce();
 	}
 
-	public override void FixedUpdate(float fixedDeltaTime)
+	public override void ComponentFixedUpdate(float fixedDeltaTime)
 	{
-		base.FixedUpdate(fixedDeltaTime);
+		base.ComponentFixedUpdate(fixedDeltaTime);
 
 		Vector3 allForces = Vector3.zero;
 

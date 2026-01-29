@@ -30,7 +30,7 @@ public class PlayerMovement : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
     }
 
-    // Update is called once per frame
+    // ComponentUpdate is called once per frame
     void FixedUpdate()
     {
 		Vector3 veloToApply = _rb.linearVelocity;
