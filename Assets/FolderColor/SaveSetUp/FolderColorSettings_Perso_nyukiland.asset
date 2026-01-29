@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55acf6011891301458a2c736f3dd2eb3, type: 3}
+  m_Name: FolderColorSettings_Perso_nyukiland
+  m_EditorClassIdentifier: 
+  Mode: 1
+  Entries:
+  - Guid: 70318ad4f35b09a48a18c7b770e521a5
+    IconPath: Assets/FolderColor/BlackFolder.png
+    UserId: nyukiland
+  - Guid: 70318ad4f35b09a48a18c7b770e521a5
+    IconPath: Assets/FolderColor/BlueishGreenFolder.png
+    UserId: nyukiland
