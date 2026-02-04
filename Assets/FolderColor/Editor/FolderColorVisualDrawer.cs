@@ -36,7 +36,7 @@ namespace FolderColor
 			}
 
 			Rect iconRect = rect.height <= 18
-				? new Rect(rect.x + 2, rect.y, rect.height, rect.height)
+				? new Rect(rect.x, rect.y, rect.height, rect.height)
 				: new Rect(rect.x, rect.y, rect.height - 8, rect.height - 8);
 
 			GUI.DrawTexture(iconRect, icon);

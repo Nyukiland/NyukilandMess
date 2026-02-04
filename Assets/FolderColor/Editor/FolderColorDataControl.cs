@@ -28,7 +28,34 @@ namespace FolderColor
 		{
 			private static FolderColorDatabase _databaseGlobal;
 			private static FolderColorDatabase _databasePersonal;
-			private static string _userId => Environment.UserName;
+
+			private static FolderColorDatabase DatabaseGlobal
+			{
+				get
+				{
+					if (_databaseGlobal == null)
+					{
+						TryGenerateScriptable(GetGlobalAssetPath(), FolderColorMode.Global, ref _databaseGlobal);
+					}
+
+					return _databaseGlobal;
+				}
+			}
+
+			private static FolderColorDatabase DatabasePersonal
+			{
+				get
+				{
+					if (_databasePersonal == null)
+					{
+						TryGenerateScriptable(GetPersonalAssetPath(), FolderColorMode.Personal, ref _databasePersonal);
+					}
+
+					return _databasePersonal;
+				}
+			}
+
+			private static string UserId => Environment.UserName;
 
 			static FolderColorData()
 			{
@@ -39,26 +66,26 @@ namespace FolderColor
 
 			public static FolderColorEntry Get(string guid, FolderColorMode mode = FolderColorMode.Global)
 			{
-				FolderColorDatabase database = mode == FolderColorMode.Personal ? _databasePersonal : _databaseGlobal;
+				FolderColorDatabase database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
 
-				if (database == null) 
+				if (database == null)
 					return null;
 
-				return database.Entries.LastOrDefault(e =>e.Guid == guid &&
-					(database.Mode == FolderColorMode.Global || e.UserId == _userId));
+				return database.Entries.LastOrDefault(e => e.Guid == guid &&
+					(database.Mode == FolderColorMode.Global || e.UserId == UserId));
 			}
 
 			public static void Set(string guid, string iconPath, FolderColorMode mode = FolderColorMode.Global)
 			{
-				FolderColorDatabase database = mode == FolderColorMode.Personal ? _databasePersonal : _databaseGlobal;
+				FolderColorDatabase database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
 
-				Remove(guid);
+				Remove(guid, mode);
 
 				database.Entries.Add(new FolderColorEntry
 				{
 					Guid = guid,
 					IconPath = iconPath,
-					UserId = database.Mode == FolderColorMode.Personal ? _userId : string.Empty
+					UserId = database.Mode == FolderColorMode.Personal ? UserId : string.Empty
 				});
 
 				Save(database);
@@ -66,13 +93,13 @@ namespace FolderColor
 
 			public static void Remove(string guid, FolderColorMode mode = FolderColorMode.Global)
 			{
-				FolderColorDatabase database = mode == FolderColorMode.Personal ? _databasePersonal : _databaseGlobal;
+				FolderColorDatabase database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
 
-				if (database == null) 
+				if (database == null)
 					return;
 
-				database.Entries.RemoveAll(e =>e.Guid == guid &&
-					(database.Mode == FolderColorMode.Global || e.UserId == _userId));
+				database.Entries.RemoveAll(e => e.Guid == guid &&
+					(database.Mode == FolderColorMode.Global || e.UserId == UserId));
 
 				Save(database);
 			}
@@ -85,28 +112,28 @@ namespace FolderColor
 			{
 				MigrateOLDJsonIfNeeded();
 
-				TryGenerateScriptable(GetGlobalAssetPath(), ref _databaseGlobal);
-				TryGenerateScriptable(GetPersonalAssetPath(), ref _databasePersonal);
+				TryGenerateScriptable(GetGlobalAssetPath(), FolderColorMode.Global, ref _databaseGlobal);
+				TryGenerateScriptable(GetPersonalAssetPath(), FolderColorMode.Personal, ref _databasePersonal);
+			}
 
-				void TryGenerateScriptable(string assetPath, ref FolderColorDatabase database)
-				{
-					database = AssetDatabase.LoadAssetAtPath<FolderColorDatabase>(assetPath);
+			private static void TryGenerateScriptable(string assetPath, FolderColorMode mode, ref FolderColorDatabase database)
+			{
+				database = AssetDatabase.LoadAssetAtPath<FolderColorDatabase>(assetPath);
 
-					if (database != null)
-						return;
+				if (database != null)
+					return;
 
-					database = ScriptableObject.CreateInstance<FolderColorDatabase>();
-					database.Mode = FolderColorMode.Global;
+				database = ScriptableObject.CreateInstance<FolderColorDatabase>();
+				database.Mode = mode;
 
-					EnsureFolderExists(assetPath);
-					AssetDatabase.CreateAsset(database, assetPath);
-					AssetDatabase.SaveAssets();
-				}
+				EnsureFolderExists(assetPath);
+				AssetDatabase.CreateAsset(database, assetPath);
+				AssetDatabase.SaveAssets();
 			}
 
 			private static void Save(FolderColorDatabase database)
 			{
-				if (database == null) 
+				if (database == null)
 					return;
 
 				EditorUtility.SetDirty(database);
@@ -170,7 +197,7 @@ namespace FolderColor
 			private static string FindOLDJson()
 			{
 				string folder = GetSaveSetupFolder();
-				if (string.IsNullOrEmpty(folder)) 
+				if (string.IsNullOrEmpty(folder))
 					return null;
 
 				string jsonPath = Path.Combine(folder, "FolderModificationData.json");
@@ -199,7 +226,7 @@ namespace FolderColor
 			private static string GetSaveSetupFolder()
 			{
 				string scriptPath = GetAnchorScriptPath();
-				if (string.IsNullOrEmpty(scriptPath)) 
+				if (string.IsNullOrEmpty(scriptPath))
 					return null;
 
 				return scriptPath.Replace($"/Editor/{nameof(FolderColorDataControl)}.cs", "/SaveSetUp");
@@ -212,13 +239,13 @@ namespace FolderColor
 
 			private static string GetPersonalAssetPath()
 			{
-				return Path.Combine(GetSaveSetupFolder(), $"FolderColorSettings_Perso_{_userId}.asset");
+				return Path.Combine(GetSaveSetupFolder(), $"FolderColorSettings_Perso_{UserId}.asset");
 			}
 
 			private static void EnsureFolderExists(string assetPath)
 			{
 				string folder = Path.GetDirectoryName(assetPath);
-				if (AssetDatabase.IsValidFolder(folder)) 
+				if (AssetDatabase.IsValidFolder(folder))
 					return;
 
 				string parent = Path.GetDirectoryName(folder);

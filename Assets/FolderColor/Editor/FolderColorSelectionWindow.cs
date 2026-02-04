@@ -71,6 +71,7 @@ namespace FolderColor
 
 					GUILayout.EndHorizontal();
 					Close();
+					return;
 				}
 
 				if (i % buttonsPerRow == buttonsPerRow - 1 || i == _icons.Length - 1)
@@ -88,9 +89,12 @@ namespace FolderColor
 			if (GUILayout.Button("None", buttonStyle, GUILayout.Width(80)))
 			{
 				foreach (var g in _targetGuids)
-					FolderColorDataControl.FolderColorData.Remove(g);
+					FolderColorDataControl.FolderColorData.Remove(g, 
+						_useGlobal? FolderColorDataControl.FolderColorMode.Global : FolderColorDataControl.FolderColorMode.Personal);
 
+				GUILayout.EndHorizontal();
 				Close();
+				return;
 			}
 
 			GUILayout.FlexibleSpace();
