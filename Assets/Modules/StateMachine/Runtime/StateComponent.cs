@@ -36,7 +36,7 @@ namespace Modules.StateMachine
 			if (value)
 				OnEnableController();
 			else
-				OnEnableController();
+				OnDisableController();
 		}
 
 		public void OnEnableController()
