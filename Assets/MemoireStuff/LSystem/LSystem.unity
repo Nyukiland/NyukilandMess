@@ -151,17 +151,26 @@ MonoBehaviour:
   axiom: FX
   rules:
   - symbol: F
-    replacement: F+X-
-    probability: 1
+    replacement: 'F+F[XX]'
+    probability: 0.4
+  - symbol: F
+    replacement: XFX
+    probability: 0.4
+  - symbol: F
+    replacement: 'F-[F+X+F]'
+    probability: 0.2
   - symbol: X
-    replacement: F[F+X]-F
-    probability: 1
-  iterations: 7
+    replacement: 'X-X[FF]'
+    probability: 0.5
+  - symbol: X
+    replacement: F+F
+    probability: 0.5
+  iterations: 6
   simulateEnvironment: 0
   environmentalStress: 0.2
-  angle: 30
+  angle: 25
   segmentLength: 1
-  branchWidth: 0.1
+  branchWidth: 0.3
   autoFrameCamera: 1
   backgroundColor: {r: 1, g: 1, b: 1, a: 1}
   branchMaterial: {fileID: 2100000, guid: 239f7a33256a0c548b2f58ab754b6f8d, type: 2}
@@ -282,6 +291,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2030210036}
   - component: {fileID: 2030210035}
+  - component: {fileID: 2030210037}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -369,6 +379,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!114 &2030210037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2030210034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_RenderingLayers: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

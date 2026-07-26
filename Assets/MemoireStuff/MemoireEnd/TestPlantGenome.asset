@@ -10,20 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e694f5c34bb77d498a2f3fe30c5e53b, type: 3}
-  m_Name: PlantGenome
+  m_Name: TestPlantGenome
   m_EditorClassIdentifier: 
   initialAxiom: X
   productionRules:
-  - X:F[+XE][-XE]FX:0.5
-  - X:F[+XE]FX:0.2
-  - X:F[-XE]FX:0.2
-  - X:F[+XE][-XE]:0.1
-  - F:FF:0.7
-  - F:F:0.3
-  baseAngle: 35
-  segmentLength: 0.25
+  - X:F[+F+[--FE]X]:0.4
+  - X:F-E-F+FX:0.6
+  - F:F[-E-F]:0.8
+  - F:F[+E]:0.2
+  baseAngle: 12
+  segmentLength: 0.4
   maxIterations: 5
-  startingEnergy: 200
+  startingEnergy: 100
   segmentCost: 2
   leafEnergyProduction: 25
   mutationRate: 0.1
