@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e694f5c34bb77d498a2f3fe30c5e53b, type: 3}
+  m_Name: PlantGenome
+  m_EditorClassIdentifier: 
+  initialAxiom: X
+  productionRules:
+  - X:F[+XE][-XE]FX:0.5
+  - X:F[+XE]FX:0.2
+  - X:F[-XE]FX:0.2
+  - X:F[+XE][-XE]:0.1
+  - F:FF:0.7
+  - F:F:0.3
+  baseAngle: 30
+  segmentLength: 0.25
+  maxIterations: 5
+  startingEnergy: 200
+  segmentCost: 2
+  leafEnergyProduction: 25
+  mutationRate: 0.1
+  structuralPenalty: 50

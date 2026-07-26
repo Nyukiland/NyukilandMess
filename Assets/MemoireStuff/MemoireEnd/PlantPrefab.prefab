@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1755710969232675933
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6866999623203455885}
+  - component: {fileID: 5273582080703094706}
+  m_Layer: 0
+  m_Name: PlantPrefab
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6866999623203455885
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1755710969232675933}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 7.983436, y: 4.5258985, z: -0.04426879}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5273582080703094706
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1755710969232675933}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 953b1de632f8e72429d27ad92e947b70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  segmentPrefab: {fileID: 4025438387059400557, guid: 01382862a267d6e4e982596edb8382b6, type: 3}
+  leafPrefab: {fileID: 4025438387059400557, guid: 2d186993a2b3cea488dee66638142a13, type: 3}
+  genomeRef: {fileID: 0}
+  dna:
+    axiom: 
+    rules: []
+    angle: 0
+    segmentLength: 0
+  _obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  currentEnergy: 0
+  energyProduced: 0
+  biomassCost: 0
+  structuralFailures: 0
+  plantColor: {r: 0, g: 1, b: 0, a: 1}
