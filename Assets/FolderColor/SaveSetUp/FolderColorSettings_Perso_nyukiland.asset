@@ -18,13 +18,31 @@ MonoBehaviour:
   - Guid: 70318ad4f35b09a48a18c7b770e521a5
     IconPath: Assets/FolderColor/WhiteFolder.png
     IconColor: {r: 0, g: 0.6, b: 0.6, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
   - Guid: 70318ad4f35b09a48a18c7b770e521a5
     IconPath: Assets/FolderColor/WhiteFolder.png
     IconColor: {r: 0, g: 0, b: 0, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
   - Guid: 70318ad4f35b09a48a18c7b770e521a5
     IconPath: Assets/FolderColor/WhiteFolder.png
     IconColor: {r: 0, g: 0.6, b: 0.6, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
   - Guid: b725c631b97184544830dfadd6476140
     IconPath: Assets/FolderColor/FolderColorLogo.png
     IconColor: {r: 1, g: 1, b: 1, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
+  - Guid: daca988099666ec40aaa2cde22bb4935
+    IconPath: Assets/FolderColor/WhiteFolder.png
+    IconColor: {r: 0.8627451, g: 0.6080179, b: 0.18823527, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
+  - Guid: b725c631b97184544830dfadd6476140
+    IconPath: Assets/FolderColor/ZFolderColorLogo.png
+    IconColor: {r: 1, g: 1, b: 1, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
   Entries: []

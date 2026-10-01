@@ -42,7 +42,6 @@ namespace FolderColor
 			GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit);
 			
 			GUI.color = originalColor;
-			
 		}
 	}
 }

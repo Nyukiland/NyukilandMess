@@ -28,7 +28,7 @@ namespace FolderColor
 		{
 			private static FolderColorDatabase _databaseGlobal;
 			private static FolderColorDatabase _databasePersonal;
-			
+
 			private static Dictionary<string, IconColorMix> _guidWithIconGlobal = new();
 			private static Dictionary<string, IconColorMix> _guidWithIconPersonal = new();
 
@@ -69,21 +69,21 @@ namespace FolderColor
 
 			public static IconColorMix Get(string guid, FolderColorMode mode = FolderColorMode.Global)
 			{
-				var guidIcons = mode == FolderColorMode.Personal? _guidWithIconPersonal : _guidWithIconGlobal;
-				
+				var guidIcons = mode == FolderColorMode.Personal ? _guidWithIconPersonal : _guidWithIconGlobal;
+
 				if (guidIcons.Count == 0 || !guidIcons.TryGetValue(guid, out IconColorMix iconColorMix))
 					return null;
 
 				return iconColorMix;
 			}
 
-			public static void Set(string guid, string iconPath, Color color, FolderColorMode mode = FolderColorMode.Global)
+			public static void Set(string guid, string iconPath, Color color, bool highlightName, bool highlightChildren, FolderColorMode mode)
 			{
-				var database = mode == FolderColorMode.Personal? DatabasePersonal : DatabaseGlobal;
-				var guidIcons = mode == FolderColorMode.Personal? _guidWithIconPersonal : _guidWithIconGlobal;
+				var database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
+				var guidIcons = mode == FolderColorMode.Personal ? _guidWithIconPersonal : _guidWithIconGlobal;
 
 				Remove(guid, mode);
-				var iconMix = new IconColorMix(guid, iconPath, color);
+				var iconMix = new IconColorMix(guid, iconPath, color, highlightName, highlightChildren);
 				database.IconEntries.Add(iconMix);
 				guidIcons.Add(guid, iconMix);
 
@@ -92,16 +92,34 @@ namespace FolderColor
 
 			public static void Remove(string guid, FolderColorMode mode = FolderColorMode.Global)
 			{
-				var database = mode == FolderColorMode.Personal? DatabasePersonal : DatabaseGlobal;
-				var guidIcons = mode == FolderColorMode.Personal? _guidWithIconPersonal : _guidWithIconGlobal;
+				var database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
+				var guidIcons = mode == FolderColorMode.Personal ? _guidWithIconPersonal : _guidWithIconGlobal;
 
-				if (database == null || guidIcons.Count == 0 || 
+				if (database == null || guidIcons.Count == 0 ||
 				    !guidIcons.TryGetValue(guid, out IconColorMix iconColorMix))
 					return;
 
 				database.IconEntries.Remove(iconColorMix);
+				guidIcons.Remove(guid);
 
 				Save(database);
+			}
+
+			public static List<Color> GetColors(FolderColorMode mode)
+			{
+				var database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
+
+				HashSet<Color> colors = new();
+
+				if (database == null)
+					return colors.ToList();
+
+				foreach (var iconEntry in database.IconEntries)
+				{
+					colors.Add(iconEntry.IconColor);
+				}
+
+				return colors.ToList();
 			}
 
 			#endregion
@@ -114,15 +132,16 @@ namespace FolderColor
 
 				TryGenerateScriptable(GetGlobalAssetPath(), FolderColorMode.Global, ref _databaseGlobal);
 				TryGenerateScriptable(GetPersonalAssetPath(), FolderColorMode.Personal, ref _databasePersonal);
-				
+
 				UpdateOldStorageSystem(FolderColorMode.Global);
 				UpdateOldStorageSystem(FolderColorMode.Personal);
-				
+
 				FillDictionaryIcon(FolderColorMode.Global);
 				FillDictionaryIcon(FolderColorMode.Personal);
 			}
 
-			private static void TryGenerateScriptable(string assetPath, FolderColorMode mode, ref FolderColorDatabase database)
+			private static void TryGenerateScriptable(string assetPath, FolderColorMode mode,
+				ref FolderColorDatabase database)
 			{
 				database = AssetDatabase.LoadAssetAtPath<FolderColorDatabase>(assetPath);
 
@@ -139,8 +158,8 @@ namespace FolderColor
 
 			private static void FillDictionaryIcon(FolderColorMode mode)
 			{
-				var database = mode == FolderColorMode.Personal? DatabasePersonal : DatabaseGlobal;
-				var guidIcons = mode == FolderColorMode.Personal? _guidWithIconPersonal : _guidWithIconGlobal;
+				var database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
+				var guidIcons = mode == FolderColorMode.Personal ? _guidWithIconPersonal : _guidWithIconGlobal;
 
 				guidIcons.Clear();
 				foreach (var iconEntry in database.IconEntries)
@@ -148,7 +167,7 @@ namespace FolderColor
 					guidIcons[iconEntry.Guid] = iconEntry;
 				}
 			}
-			
+
 			private static void Save(FolderColorDatabase database)
 			{
 				if (database == null)
@@ -197,9 +216,7 @@ namespace FolderColor
 
 					database.Entries.Add(new FolderColorEntry
 					{
-						Guid = guid,
-						IconPath = legacy.assetModifiedTexturePath[i],
-						UserId = string.Empty
+						Guid = guid, IconPath = legacy.assetModifiedTexturePath[i], UserId = string.Empty
 					});
 				}
 
@@ -235,23 +252,23 @@ namespace FolderColor
 			private static void UpdateOldStorageSystem(FolderColorMode mode)
 			{
 				FolderColorDatabase database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
-				
+
 				if (database == null || database.Entries.Count == 0)
 					return;
-				
+
 				foreach (var entry in database.Entries)
 				{
 					Color color = GetColorFromOldAsset(entry.IconPath);
-					database.IconEntries.Add(new (entry.Guid, "Assets/FolderColor/WhiteFolder.png", color));
+					database.IconEntries.Add(new(entry.Guid, "Assets/FolderColor/WhiteFolder.png", color));
 				}
-				
+
 				database.Entries.Clear();
 				Save(database);
 			}
 
 			private static Color GetColorFromOldAsset(string path)
 			{
-				if (string.IsNullOrEmpty(path)) 
+				if (string.IsNullOrEmpty(path))
 					return Color.white;
 
 				string fileName = Path.GetFileName(path);
@@ -259,24 +276,24 @@ namespace FolderColor
 				return fileName switch
 				{
 					"BlackFolder.png" => Color.black,
-					"BlueishGreenFolder.png" => new (0f, 0.6f, 0.6f),
-					"BrownFolder.png" => new (0.4f, 0.2f, 0f),
+					"BlueishGreenFolder.png" => new(0f, 0.6f, 0.6f),
+					"BrownFolder.png" => new(0.4f, 0.2f, 0f),
 					"FolderBlue.png" => Color.blue,
 					"FolderCyan.png" => Color.cyan,
-					"FolderPurple.png" => new (0.6f, 0.1f, 0.9f),
+					"FolderPurple.png" => new(0.6f, 0.1f, 0.9f),
 					"GreenFolder.png" => Color.green,
-					"OrangeFolder.png" => new (1f, 0.5f, 0f),
-					"PinkFolder.png" => new (1f, 0.4f, 0.7f),
+					"OrangeFolder.png" => new(1f, 0.5f, 0f),
+					"PinkFolder.png" => new(1f, 0.4f, 0.7f),
 					"RedFolder.png" => Color.red,
-					"SlimeFolder.png" => new (0.6f, 1f, 0.2f),
+					"SlimeFolder.png" => new(0.6f, 1f, 0.2f),
 					"Whitefolder.png" => Color.white,
 					"YellowFolder.png" => Color.yellow,
 					_ => Color.white
 				};
 			}
-			
+
 			#endregion
-			
+
 			#region Path utilities
 
 			private static string GetAnchorScriptPath()
