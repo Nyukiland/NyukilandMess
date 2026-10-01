@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: FolderColorSettings_Global
   m_EditorClassIdentifier: 
   Mode: 0
-  Entries:
-  - Guid: b725c631b97184544830dfadd6476140
-    IconPath: Assets/FolderColor/FolderColorLogo.png
-    UserId: 
+  UserId: 
+  IconEntries: []
+  Entries: []

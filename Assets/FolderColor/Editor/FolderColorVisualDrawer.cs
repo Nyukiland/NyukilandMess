@@ -1,8 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace FolderColor
 {
@@ -39,7 +36,13 @@ namespace FolderColor
 				? new Rect(rect.x, rect.y, rect.height, rect.height)
 				: new Rect(rect.x, rect.y, rect.height - 8, rect.height - 8);
 
-			GUI.DrawTexture(iconRect, icon);
+			Color originalColor = GUI.color;
+          
+			GUI.color = entry.IconColor;
+			GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit);
+			
+			GUI.color = originalColor;
+			
 		}
 	}
 }

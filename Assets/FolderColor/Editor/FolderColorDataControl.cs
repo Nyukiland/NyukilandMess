@@ -28,6 +28,9 @@ namespace FolderColor
 		{
 			private static FolderColorDatabase _databaseGlobal;
 			private static FolderColorDatabase _databasePersonal;
+			
+			private static Dictionary<string, IconColorMix> _guidWithIconGlobal = new();
+			private static Dictionary<string, IconColorMix> _guidWithIconPersonal = new();
 
 			private static FolderColorDatabase DatabaseGlobal
 			{
@@ -64,42 +67,39 @@ namespace FolderColor
 
 			#region Public
 
-			public static FolderColorEntry Get(string guid, FolderColorMode mode = FolderColorMode.Global)
+			public static IconColorMix Get(string guid, FolderColorMode mode = FolderColorMode.Global)
 			{
-				FolderColorDatabase database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
-
-				if (database == null)
+				var guidIcons = mode == FolderColorMode.Personal? _guidWithIconPersonal : _guidWithIconGlobal;
+				
+				if (guidIcons.Count == 0 || !guidIcons.TryGetValue(guid, out IconColorMix iconColorMix))
 					return null;
 
-				return database.Entries.LastOrDefault(e => e.Guid == guid &&
-					(database.Mode == FolderColorMode.Global || e.UserId == UserId));
+				return iconColorMix;
 			}
 
-			public static void Set(string guid, string iconPath, FolderColorMode mode = FolderColorMode.Global)
+			public static void Set(string guid, string iconPath, Color color, FolderColorMode mode = FolderColorMode.Global)
 			{
-				FolderColorDatabase database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
+				var database = mode == FolderColorMode.Personal? DatabasePersonal : DatabaseGlobal;
+				var guidIcons = mode == FolderColorMode.Personal? _guidWithIconPersonal : _guidWithIconGlobal;
 
 				Remove(guid, mode);
-
-				database.Entries.Add(new FolderColorEntry
-				{
-					Guid = guid,
-					IconPath = iconPath,
-					UserId = database.Mode == FolderColorMode.Personal ? UserId : string.Empty
-				});
+				var iconMix = new IconColorMix(guid, iconPath, color);
+				database.IconEntries.Add(iconMix);
+				guidIcons.Add(guid, iconMix);
 
 				Save(database);
 			}
 
 			public static void Remove(string guid, FolderColorMode mode = FolderColorMode.Global)
 			{
-				FolderColorDatabase database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
+				var database = mode == FolderColorMode.Personal? DatabasePersonal : DatabaseGlobal;
+				var guidIcons = mode == FolderColorMode.Personal? _guidWithIconPersonal : _guidWithIconGlobal;
 
-				if (database == null)
+				if (database == null || guidIcons.Count == 0 || 
+				    !guidIcons.TryGetValue(guid, out IconColorMix iconColorMix))
 					return;
 
-				database.Entries.RemoveAll(e => e.Guid == guid &&
-					(database.Mode == FolderColorMode.Global || e.UserId == UserId));
+				database.IconEntries.Remove(iconColorMix);
 
 				Save(database);
 			}
@@ -114,6 +114,12 @@ namespace FolderColor
 
 				TryGenerateScriptable(GetGlobalAssetPath(), FolderColorMode.Global, ref _databaseGlobal);
 				TryGenerateScriptable(GetPersonalAssetPath(), FolderColorMode.Personal, ref _databasePersonal);
+				
+				UpdateOldStorageSystem(FolderColorMode.Global);
+				UpdateOldStorageSystem(FolderColorMode.Personal);
+				
+				FillDictionaryIcon(FolderColorMode.Global);
+				FillDictionaryIcon(FolderColorMode.Personal);
 			}
 
 			private static void TryGenerateScriptable(string assetPath, FolderColorMode mode, ref FolderColorDatabase database)
@@ -131,6 +137,18 @@ namespace FolderColor
 				AssetDatabase.SaveAssets();
 			}
 
+			private static void FillDictionaryIcon(FolderColorMode mode)
+			{
+				var database = mode == FolderColorMode.Personal? DatabasePersonal : DatabaseGlobal;
+				var guidIcons = mode == FolderColorMode.Personal? _guidWithIconPersonal : _guidWithIconGlobal;
+
+				guidIcons.Clear();
+				foreach (var iconEntry in database.IconEntries)
+				{
+					guidIcons[iconEntry.Guid] = iconEntry;
+				}
+			}
+			
 			private static void Save(FolderColorDatabase database)
 			{
 				if (database == null)
@@ -193,7 +211,6 @@ namespace FolderColor
 				Debug.Log($"[FolderColor] Migrated {database.Entries.Count} entries from OLD JSON.");
 			}
 
-
 			private static string FindOLDJson()
 			{
 				string folder = GetSaveSetupFolder();
@@ -213,6 +230,53 @@ namespace FolderColor
 
 			#endregion
 
+			#region OldStorageToNew
+
+			private static void UpdateOldStorageSystem(FolderColorMode mode)
+			{
+				FolderColorDatabase database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
+				
+				if (database == null || database.Entries.Count == 0)
+					return;
+				
+				foreach (var entry in database.Entries)
+				{
+					Color color = GetColorFromOldAsset(entry.IconPath);
+					database.IconEntries.Add(new (entry.Guid, "Assets/FolderColor/WhiteFolder.png", color));
+				}
+				
+				database.Entries.Clear();
+				Save(database);
+			}
+
+			private static Color GetColorFromOldAsset(string path)
+			{
+				if (string.IsNullOrEmpty(path)) 
+					return Color.white;
+
+				string fileName = Path.GetFileName(path);
+
+				return fileName switch
+				{
+					"BlackFolder.png" => Color.black,
+					"BlueishGreenFolder.png" => new (0f, 0.6f, 0.6f),
+					"BrownFolder.png" => new (0.4f, 0.2f, 0f),
+					"FolderBlue.png" => Color.blue,
+					"FolderCyan.png" => Color.cyan,
+					"FolderPurple.png" => new (0.6f, 0.1f, 0.9f),
+					"GreenFolder.png" => Color.green,
+					"OrangeFolder.png" => new (1f, 0.5f, 0f),
+					"PinkFolder.png" => new (1f, 0.4f, 0.7f),
+					"RedFolder.png" => Color.red,
+					"SlimeFolder.png" => new (0.6f, 1f, 0.2f),
+					"Whitefolder.png" => Color.white,
+					"YellowFolder.png" => Color.yellow,
+					_ => Color.white
+				};
+			}
+			
+			#endregion
+			
 			#region Path utilities
 
 			private static string GetAnchorScriptPath()

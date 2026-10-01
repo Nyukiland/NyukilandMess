@@ -13,10 +13,18 @@ MonoBehaviour:
   m_Name: FolderColorSettings_Perso_nyukiland
   m_EditorClassIdentifier: 
   Mode: 1
-  Entries:
+  UserId: 
+  IconEntries:
   - Guid: 70318ad4f35b09a48a18c7b770e521a5
-    IconPath: Assets/FolderColor/BlackFolder.png
-    UserId: nyukiland
+    IconPath: Assets/FolderColor/WhiteFolder.png
+    IconColor: {r: 0, g: 0.6, b: 0.6, a: 1}
   - Guid: 70318ad4f35b09a48a18c7b770e521a5
-    IconPath: Assets/FolderColor/BlueishGreenFolder.png
-    UserId: nyukiland
+    IconPath: Assets/FolderColor/WhiteFolder.png
+    IconColor: {r: 0, g: 0, b: 0, a: 1}
+  - Guid: 70318ad4f35b09a48a18c7b770e521a5
+    IconPath: Assets/FolderColor/WhiteFolder.png
+    IconColor: {r: 0, g: 0.6, b: 0.6, a: 1}
+  - Guid: b725c631b97184544830dfadd6476140
+    IconPath: Assets/FolderColor/FolderColorLogo.png
+    IconColor: {r: 1, g: 1, b: 1, a: 1}
+  Entries: []

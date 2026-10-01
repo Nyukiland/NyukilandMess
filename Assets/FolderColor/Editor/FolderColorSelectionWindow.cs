@@ -9,6 +9,8 @@ namespace FolderColor
 		private string[] _targetGuids;
 		private Texture2D[] _icons;
 
+		private Color _colorField = Color.black;
+		
 		private bool _useGlobal;
 
 		[MenuItem("Assets/Custom Folder Icon", false, 100)]
@@ -50,6 +52,10 @@ namespace FolderColor
 			FolderColorToolBar();
 
 			GUILayout.Space(10);
+			
+			_colorField = EditorGUILayout.ColorField(_colorField);
+			
+			GUILayout.Space(10);
 
 			int buttonSize = 80;
 			int padding = 4; 
@@ -65,11 +71,12 @@ namespace FolderColor
 					string iconPath = AssetDatabase.GetAssetPath(_icons[i]);
 					foreach (string guid in _targetGuids)
 					{
-						FolderColorDataControl.FolderColorData.Set(guid, iconPath, 
+						FolderColorDataControl.FolderColorData.Set(guid, iconPath, _colorField,
 							_useGlobal? FolderColorDataControl.FolderColorMode.Global : FolderColorDataControl.FolderColorMode.Personal);
 					}
 
 					GUILayout.EndHorizontal();
+					_colorField = Color.black;
 					Close();
 					return;
 				}
