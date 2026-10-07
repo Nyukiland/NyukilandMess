@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System.Linq;
+using Object = UnityEngine.Object;
 
 namespace Modules.ScriptTemplate
 {
@@ -56,6 +58,7 @@ namespace Modules.ScriptTemplate
 			CreateScriptFromTemplate("AttributeDrawerTemplate.txt");
 		}
 
+		[Obsolete("Obsolete")]
 		private static void CreateScriptFromTemplate(string templateName)
 		{
 			string[] g = AssetDatabase.FindAssets($"t:Script {nameof(ScriptTemplateContextMenu)}");
@@ -105,6 +108,7 @@ namespace Modules.ScriptTemplate
 			return Path.GetDirectoryName(selectedPath);
 		}
 
+		[Obsolete("Obsolete")]
 		private class DoCreateScriptAsset : UnityEditor.ProjectWindowCallback.EndNameEditAction
 		{
 			public override void Action(int instanceId, string pathName, string resourceFile)

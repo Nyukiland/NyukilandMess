@@ -40,7 +40,7 @@ public class PlanarReflectionsProbe : MonoBehaviour {
 
     private void InitializeProbe () {
         _probeGO = new GameObject("", typeof(Camera), typeof(Skybox));
-        _probeGO.name = "PRCamera" + _probeGO.GetInstanceID().ToString();
+        _probeGO.name = "PRCamera" + _probeGO.GetEntityId().ToString();
         _probeGO.hideFlags = HideFlags.HideAndDontSave;
         _probe = _probeGO.GetComponent<Camera>();
         _probeSkybox = _probeGO.GetComponent<Skybox>();

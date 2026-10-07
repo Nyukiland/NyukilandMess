@@ -1,0 +1,13 @@
+﻿<Solution>
+  <Project Path="AmplifyShaderEditor.csproj" />
+  <Project Path="Modules.CustomAttributeEditor.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Modules.StateMachine.csproj" />
+  <Project Path="Modules.CustomAttribute.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="Modules.Devloggers.csproj" />
+  <Project Path="Modules.ScriptTemplate.csproj" />
+  <Project Path="Modules.DevloggersEditor.csproj" />
+  <Project Path="Modules.VarExtention.csproj" />
+  <Project Path="FolderColor.csproj" />
+</Solution>
