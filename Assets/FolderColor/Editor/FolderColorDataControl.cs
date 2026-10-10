@@ -31,6 +31,9 @@ namespace FolderColor
 
 			private static Dictionary<string, IconColorMix> _guidWithIconGlobal = new();
 			private static Dictionary<string, IconColorMix> _guidWithIconPersonal = new();
+			
+			private static List<(string Path, Color Color)> _highlightParentPathsGlobal = new();
+			private static List<(string Path, Color Color)> _highlightParentPathsPersonal = new();
 
 			private static FolderColorDatabase DatabaseGlobal
 			{
@@ -83,11 +86,14 @@ namespace FolderColor
 				var guidIcons = mode == FolderColorMode.Personal ? _guidWithIconPersonal : _guidWithIconGlobal;
 
 				Remove(guid, mode);
+				
 				var iconMix = new IconColorMix(guid, iconPath, color, highlightName, highlightChildren);
 				database.IconEntries.Add(iconMix);
 				guidIcons.Add(guid, iconMix);
 
 				Save(database);
+				
+				FillDictionaryIcon(mode);
 			}
 
 			public static void Remove(string guid, FolderColorMode mode = FolderColorMode.Global)
@@ -103,9 +109,11 @@ namespace FolderColor
 				guidIcons.Remove(guid);
 
 				Save(database);
+				
+				FillDictionaryIcon(mode);
 			}
 
-			public static List<Color> GetColors(FolderColorMode mode)
+			public static List<Color> GetPresetColors(FolderColorMode mode)
 			{
 				var database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
 
@@ -120,6 +128,33 @@ namespace FolderColor
 				}
 
 				return colors.ToList();
+			}
+			
+			public static Color? GetChildHighlightColor(string assetPath, FolderColorMode mode)
+			{
+				var parentPaths = mode == FolderColorMode.Personal ? _highlightParentPathsPersonal : _highlightParentPathsGlobal;
+             
+				if (string.IsNullOrEmpty(assetPath) || parentPaths.Count == 0)
+					return null;
+
+				string normalizedAssetPath = assetPath.Replace('\\', '/');
+				
+				int longestMatch = 0;
+				Color? bestMatchColor = null;
+
+				foreach (var parent in parentPaths)
+				{
+					if (normalizedAssetPath.StartsWith(parent.Path, StringComparison.Ordinal))
+					{
+						if (parent.Path.Length > longestMatch)
+						{
+							longestMatch = parent.Path.Length;
+							bestMatchColor = parent.Color;
+						}
+					}
+				}
+
+				return bestMatchColor;
 			}
 
 			#endregion
@@ -160,11 +195,23 @@ namespace FolderColor
 			{
 				var database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
 				var guidIcons = mode == FolderColorMode.Personal ? _guidWithIconPersonal : _guidWithIconGlobal;
+				var parentPaths = mode == FolderColorMode.Personal ? _highlightParentPathsPersonal : _highlightParentPathsGlobal;
 
 				guidIcons.Clear();
+				parentPaths.Clear();
+				
 				foreach (var iconEntry in database.IconEntries)
 				{
 					guidIcons[iconEntry.Guid] = iconEntry;
+
+					if (iconEntry.HighlightChildren)
+					{
+						string path = AssetDatabase.GUIDToAssetPath(iconEntry.Guid);
+						if (!string.IsNullOrEmpty(path))
+						{
+							parentPaths.Add((path + "/", iconEntry.IconColor));
+						}
+					}
 				}
 			}
 

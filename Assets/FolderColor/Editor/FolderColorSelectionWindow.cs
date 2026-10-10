@@ -144,7 +144,7 @@ namespace FolderColor
 		{
 			GUILayout.Space(5);
 
-			List<Color> globalColor = FolderColorDataControl.FolderColorData.GetColors(FolderColorDataControl.FolderColorMode.Global);
+			List<Color> globalColor = FolderColorDataControl.FolderColorData.GetPresetColors(FolderColorDataControl.FolderColorMode.Global);
 			if (globalColor != null && globalColor.Count > 0)
 			{
 				GUILayout.Label("Global used colors", EditorStyles.boldLabel);
@@ -154,7 +154,7 @@ namespace FolderColor
 			GUILayout.Space(5);
 
 			List<Color> personalColor =
-				FolderColorDataControl.FolderColorData.GetColors(FolderColorDataControl.FolderColorMode.Personal);
+				FolderColorDataControl.FolderColorData.GetPresetColors(FolderColorDataControl.FolderColorMode.Personal);
 			if (personalColor != null && personalColor.Count > 0)
 			{
 				GUILayout.Label("Personal used colors", EditorStyles.boldLabel);

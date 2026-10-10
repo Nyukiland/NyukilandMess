@@ -14,5 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Mode: 0
   UserId: 
-  IconEntries: []
+  IconEntries:
+  - Guid: b725c631b97184544830dfadd6476140
+    IconPath: Assets/FolderColor/ZFolderColorLogo.png
+    IconColor: {r: 1, g: 1, b: 1, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
   Entries: []

@@ -6,12 +6,16 @@ namespace FolderColor
 {
 	public class FolderColorDatabase : ScriptableObject
 	{
+		[HideInInspector]
 		public FolderColorDataControl.FolderColorMode Mode = FolderColorDataControl.FolderColorMode.Global;
+		[HideInInspector]
 		public string UserId;
 
+		[HideInInspector]
 		public List<IconColorMix> IconEntries = new();
-		
-		[Header("Old")]
+
+		// Old
+		[HideInInspector]
 		public List<FolderColorDataControl.FolderColorEntry> Entries = new();
 	}
 
@@ -19,13 +23,22 @@ namespace FolderColor
 	public class IconColorMix
 	{
 		public IconColorMix(string guid, string path, Color color, 
-			bool highlightName = false, bool highlightChildren = false)
+			bool highlightName, bool highlightChildren)
 		{
 			Guid = guid;
 			IconPath = path;
 			IconColor = color;
 			HighlightName = highlightName;
 			HighlightChildren = highlightChildren;
+		}
+		
+		public IconColorMix(string guid, string path, Color color)
+		{
+			Guid = guid;
+			IconPath = path;
+			IconColor = color;
+			HighlightName = false;
+			HighlightChildren = false;
 		}
 		
 		public string Guid;
