@@ -306,7 +306,7 @@ namespace FolderColor.Editor
 				foreach (var entry in database.Entries)
 				{
 					Color color = GetColorFromOldAsset(entry.IconPath);
-					database.IconEntries.Add(new(entry.Guid, GetFolderImagePath("AbaseFolder.png"), color));
+					database.IconEntries.Add(new(entry.Guid, "AbaseFolder.png", color));
 				}
 
 				database.Entries.Clear();

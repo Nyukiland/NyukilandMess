@@ -282,6 +282,7 @@ namespace FolderColor.Editor
 				else
 				{
 					string iconPath = AssetDatabase.GetAssetPath(_icons[_selectedIndex - 1]);
+					iconPath = iconPath.Replace(FolderColorDataControl.FolderColorData.GetFolderImagePath(""), "");
 					FolderColorDataControl.FolderColorData.Set(guid, iconPath, _colorField,
 						_highlightName, _highlightChildren, mode);
 				}

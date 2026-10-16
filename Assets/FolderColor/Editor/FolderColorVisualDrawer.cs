@@ -49,7 +49,8 @@ namespace FolderColor.Editor
 				EditorGUI.DrawRect(nameRect, new(entry.IconColor.r, entry.IconColor.g, entry.IconColor.b, 0.2f));
 			}
 
-			Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>(entry.IconPath);
+			string iconPath = FolderColorDataControl.FolderColorData.GetFolderImagePath(entry.IconPath);
+			Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
 			if (icon == null)
 			{
 				FolderColorDataControl.FolderColorData.Remove(guid, mode);
