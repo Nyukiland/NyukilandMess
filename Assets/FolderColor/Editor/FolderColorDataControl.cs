@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace FolderColor
+namespace FolderColor.Editor
 {
 	public class FolderColorDataControl
 	{

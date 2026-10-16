@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace FolderColor
+namespace FolderColor.Editor
 {
 	[InitializeOnLoad]
 	public class FolderColorVisualDrawer

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FolderColor
+namespace FolderColor.Editor
 {
 	public class FolderColorDatabase : ScriptableObject
 	{

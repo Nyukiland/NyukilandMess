@@ -1,7 +1,7 @@
 {
-    "name": "FolderColor",
+    "name": "FolderColor.Editor",
     "rootNamespace": "",
-    "references": [],
+    "references": ["GUID:448101435d471df4695cd9862af14003"],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

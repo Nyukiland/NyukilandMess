@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Linq;
 
-namespace FolderColor
+namespace FolderColor.Editor
 {
 	public class FolderColorSelectionWindow : EditorWindow
 	{
