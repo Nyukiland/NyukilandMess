@@ -10,6 +10,7 @@ namespace FolderColor.Editor
 		private string[] _targetGuids;
 		private Texture2D[] _icons;
 
+		private bool _foldoutPresetColor = false;
 		private Color _colorField = Color.white;
 
 		private bool _useGlobal;
@@ -17,6 +18,8 @@ namespace FolderColor.Editor
 
 		private bool _highlightName;
 		private bool _highlightChildren;
+		
+		private Vector2 _scrollPosition = Vector2.zero;
 
 		[MenuItem("Assets/Custom Folder Icon", false, 100)]
 		private static void Open()
@@ -57,6 +60,8 @@ namespace FolderColor.Editor
 		{
 			FolderColorToolBar();
 
+			_scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
+			
 			GUILayout.BeginHorizontal();
 			GUILayout.Space(15);
 
@@ -110,6 +115,8 @@ namespace FolderColor.Editor
 
 			GUILayout.Space(15);
 			GUILayout.EndHorizontal();
+			
+			GUILayout.EndScrollView();
 		}
 
 		private void FolderColorToolBar()
@@ -141,6 +148,11 @@ namespace FolderColor.Editor
 		{
 			GUILayout.Space(5);
 
+			_foldoutPresetColor =  EditorGUILayout.Foldout(_foldoutPresetColor, "Preset Colors");
+			
+			if (!_foldoutPresetColor)
+				return;
+			
 			List<Color> globalColor = FolderColorDataControl.FolderColorData.GetPresetColors(FolderColorDataControl.FolderColorMode.Global);
 			if (globalColor != null && globalColor.Count > 0)
 			{

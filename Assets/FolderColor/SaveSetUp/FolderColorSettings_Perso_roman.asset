@@ -16,8 +16,38 @@ MonoBehaviour:
   UserId: 
   IconEntries:
   - Guid: 70318ad4f35b09a48a18c7b770e521a5
-    IconPath: Assets/FolderColor/Whitefolder.png
-    IconColor: {r: 1, g: 0, b: 0, a: 1}
+    IconPath: Assets/FolderColor/AbaseFolder.png
+    IconColor: {r: 0.8867924, g: 0.8554068, b: 0.37646836, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
+  - Guid: 18c7ccc2770da48468a0bc45cfc2884e
+    IconPath: Assets/FolderColor/TextureFolder.png
+    IconColor: {r: 0.81761, g: 0.21854341, b: 0.7873355, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
+  - Guid: 6b38e3e543e278441bff495bbfb36eda
+    IconPath: Assets/FolderColor/ShaderFolder.png
+    IconColor: {r: 0.6289307, g: 0.1799769, b: 0.30913177, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
+  - Guid: 08bc40076d6368d47ad724eacb32e480
+    IconPath: Assets/FolderColor/FileFolder.png
+    IconColor: {r: 0.20044208, g: 0.72327036, b: 0.14328933, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
+  - Guid: 4360ba8febc20e942835acf3b230a603
+    IconPath: Assets/FolderColor/PackageFolder.png
+    IconColor: {r: 0.054641537, g: 0.32704395, b: 0.04833666, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
+  - Guid: 821abbc8fbf196440aecaee38a7cc524
+    IconPath: Assets/FolderColor/MeshFolder.png
+    IconColor: {r: 0.6855345, g: 0.29886436, b: 0.14874795, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
+  - Guid: 4558ff407737ef74fb1f952c3d7153d1
+    IconPath: Assets/FolderColor/AbaseFolder.png
+    IconColor: {r: 0.7735849, g: 0.60306615, b: 0.0851429, a: 1}
     HighlightName: 0
     HighlightChildren: 0
   Entries: []
