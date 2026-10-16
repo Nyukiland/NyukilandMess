@@ -1,9 +1,0 @@
-using Modules.StateMachine
-using UnityEngine;
-
-#NAMESPACE_START#
-public class #SCRIPTNAME# : Ability
-{
-	
-}
-#NAMESPACE_END#
