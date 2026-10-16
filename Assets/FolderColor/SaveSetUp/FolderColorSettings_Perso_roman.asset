@@ -13,4 +13,11 @@ MonoBehaviour:
   m_Name: FolderColorSettings_Perso_roman
   m_EditorClassIdentifier: 
   Mode: 1
+  UserId: 
+  IconEntries:
+  - Guid: 70318ad4f35b09a48a18c7b770e521a5
+    IconPath: Assets/FolderColor/Whitefolder.png
+    IconColor: {r: 1, g: 0, b: 0, a: 1}
+    HighlightName: 0
+    HighlightChildren: 0
   Entries: []

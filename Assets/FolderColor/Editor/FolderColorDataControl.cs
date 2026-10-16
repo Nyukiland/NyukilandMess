@@ -306,7 +306,7 @@ namespace FolderColor
 				foreach (var entry in database.Entries)
 				{
 					Color color = GetColorFromOldAsset(entry.IconPath);
-					database.IconEntries.Add(new(entry.Guid, "Assets/FolderColor/WhiteFolder.png", color));
+					database.IconEntries.Add(new(entry.Guid, GetFolderImagePath("WhiteFolder.png"), color));
 				}
 
 				database.Entries.Clear();
@@ -360,6 +360,15 @@ namespace FolderColor
 				return scriptPath.Replace($"/Editor/{nameof(FolderColorDataControl)}.cs", "/SaveSetUp");
 			}
 
+			public static string GetFolderImagePath(string imageName)
+			{
+				string scriptPath = GetAnchorScriptPath();
+				if (string.IsNullOrEmpty(scriptPath))
+					return null;
+
+				return scriptPath.Replace($"/Editor/{nameof(FolderColorDataControl)}.cs", "/" + imageName);
+			}
+			
 			private static string GetGlobalAssetPath()
 			{
 				return Path.Combine(GetSaveSetupFolder(), "FolderColorSettings_Global.asset");

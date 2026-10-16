@@ -42,10 +42,7 @@ namespace FolderColor
 
 		private void LoadIcons()
 		{
-			string path = AssetDatabase.FindAssets($"{nameof(FolderColorSelectionWindow)} t:script")
-				.Select(AssetDatabase.GUIDToAssetPath)
-				.First()
-				.Replace($"/Editor/{nameof(FolderColorSelectionWindow)}.cs", "");
+			string path = FolderColorDataControl.FolderColorData.GetFolderImagePath("");
 
 			_icons = AssetDatabase.FindAssets("t:Texture2D", new[]
 				{
