@@ -273,6 +273,8 @@ namespace FolderColor.Editor
 				? FolderColorDataControl.FolderColorMode.Global
 				: FolderColorDataControl.FolderColorMode.Personal;
 
+			string rootPath = FolderColorDataControl.FolderColorData.GetFolderImagePath("");
+			
 			foreach (string guid in _targetGuids)
 			{
 				if (_selectedIndex == 0)
@@ -282,7 +284,11 @@ namespace FolderColor.Editor
 				else
 				{
 					string iconPath = AssetDatabase.GetAssetPath(_icons[_selectedIndex - 1]);
-					iconPath = iconPath.Replace(FolderColorDataControl.FolderColorData.GetFolderImagePath(""), "");
+					if (!string.IsNullOrEmpty(rootPath) && iconPath.StartsWith(rootPath))
+					{
+						iconPath = iconPath.Substring(rootPath.Length).TrimStart('/', '\\');
+					}
+			
 					FolderColorDataControl.FolderColorData.Set(guid, iconPath, _colorField,
 						_highlightName, _highlightChildren, mode);
 				}

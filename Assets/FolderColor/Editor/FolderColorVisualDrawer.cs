@@ -13,6 +13,9 @@ namespace FolderColor.Editor
 
 		private static void OnGUI(string guid, Rect rect)
 		{
+			if (Event.current.type != EventType.Repaint) 
+				return;
+			
 			string path = AssetDatabase.GUIDToAssetPath(guid);
 			if (string.IsNullOrEmpty(path)) return;
 

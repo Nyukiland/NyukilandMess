@@ -35,6 +35,9 @@ namespace FolderColor.Editor
 			private static List<(string Path, Color Color)> _highlightParentPathsGlobal = new();
 			private static List<(string Path, Color Color)> _highlightParentPathsPersonal = new();
 
+			private static readonly Dictionary<string, Texture2D> _textureCache = new();
+			private static string _cachedAnchorFolder;
+			
 			private static FolderColorDatabase DatabaseGlobal
 			{
 				get
@@ -80,6 +83,25 @@ namespace FolderColor.Editor
 				return iconColorMix;
 			}
 
+			public static Texture2D GetCachedIcon(string relativeIconPath)
+			{
+				if (string.IsNullOrEmpty(relativeIconPath)) return null;
+
+				if (_textureCache.TryGetValue(relativeIconPath, out Texture2D cachedTex) && cachedTex != null)
+					return cachedTex;
+
+				string fullPath = GetFolderImagePath(relativeIconPath);
+				if (string.IsNullOrEmpty(fullPath)) return null;
+
+				Texture2D loadedTex = AssetDatabase.LoadAssetAtPath<Texture2D>(fullPath);
+				if (loadedTex != null)
+				{
+					_textureCache[relativeIconPath] = loadedTex;
+				}
+
+				return loadedTex;
+			}
+			
 			public static void Set(string guid, string iconPath, Color color, bool highlightName, bool highlightChildren, FolderColorMode mode)
 			{
 				var database = mode == FolderColorMode.Personal ? DatabasePersonal : DatabaseGlobal;
@@ -87,6 +109,8 @@ namespace FolderColor.Editor
 
 				Remove(guid, mode);
 				
+				iconPath = iconPath?.TrimStart('/', '\\');
+
 				var iconMix = new IconColorMix(guid, iconPath, color, highlightName, highlightChildren);
 				database.IconEntries.Add(iconMix);
 				guidIcons.Add(guid, iconMix);
@@ -137,14 +161,12 @@ namespace FolderColor.Editor
 				if (string.IsNullOrEmpty(assetPath) || parentPaths.Count == 0)
 					return null;
 
-				string normalizedAssetPath = assetPath.Replace('\\', '/');
-				
 				int longestMatch = 0;
 				Color? bestMatchColor = null;
 
 				foreach (var parent in parentPaths)
 				{
-					if (normalizedAssetPath.StartsWith(parent.Path, StringComparison.Ordinal))
+					if (assetPath.StartsWith(parent.Path, StringComparison.Ordinal))
 					{
 						if (parent.Path.Length > longestMatch)
 						{
@@ -163,6 +185,9 @@ namespace FolderColor.Editor
 
 			private static void LoadOrCreate()
 			{
+				_cachedAnchorFolder = null;
+				_textureCache.Clear();
+				
 				MigrateOLDJsonIfNeeded();
 
 				TryGenerateScriptable(GetGlobalAssetPath(), FolderColorMode.Global, ref _databaseGlobal);
@@ -209,6 +234,7 @@ namespace FolderColor.Editor
 						string path = AssetDatabase.GUIDToAssetPath(iconEntry.Guid);
 						if (!string.IsNullOrEmpty(path))
 						{
+							path = path.Replace('\\', '/');
 							parentPaths.Add((path + "/", iconEntry.IconColor));
 						}
 					}
@@ -281,7 +307,7 @@ namespace FolderColor.Editor
 				if (string.IsNullOrEmpty(folder))
 					return null;
 
-				string jsonPath = Path.Combine(folder, "FolderModificationData.json");
+				string jsonPath = Path.Combine(folder, "FolderModificationData.json").Replace('\\', '/');
 				return File.Exists(jsonPath) ? jsonPath : null;
 			}
 
@@ -343,49 +369,64 @@ namespace FolderColor.Editor
 
 			#region Path utilities
 
-			private static string GetAnchorScriptPath()
+			private static string GetAnchorScriptFolder()
 			{
-				string guid = AssetDatabase.FindAssets($"{nameof(FolderColorDataControl)} t:script")
-					.FirstOrDefault();
+				if (!string.IsNullOrEmpty(_cachedAnchorFolder))
+					return _cachedAnchorFolder;
 
-				return string.IsNullOrEmpty(guid) ? null : AssetDatabase.GUIDToAssetPath(guid);
+				string guid = AssetDatabase.FindAssets($"{nameof(FolderColorDataControl)} t:script").FirstOrDefault();
+				if (string.IsNullOrEmpty(guid))
+					return null;
+
+				string scriptPath = AssetDatabase.GUIDToAssetPath(guid);
+				_cachedAnchorFolder = Path.GetDirectoryName(scriptPath)?.Replace('\\', '/');
+				return _cachedAnchorFolder;
 			}
 
 			private static string GetSaveSetupFolder()
 			{
-				string scriptPath = GetAnchorScriptPath();
-				if (string.IsNullOrEmpty(scriptPath))
+				string folder = GetAnchorScriptFolder();
+				if (string.IsNullOrEmpty(folder))
 					return null;
 
-				return scriptPath.Replace($"/Editor/{nameof(FolderColorDataControl)}.cs", "/SaveSetUp");
+				string parent = Path.GetDirectoryName(folder)?.Replace('\\', '/');
+				return parent != null ? $"{parent}/SaveSetUp" : null;
 			}
 
 			public static string GetFolderImagePath(string imageName)
 			{
-				string scriptPath = GetAnchorScriptPath();
-				if (string.IsNullOrEmpty(scriptPath))
+				string folder = GetAnchorScriptFolder();
+				if (string.IsNullOrEmpty(folder))
 					return null;
 
-				return scriptPath.Replace($"/Editor/{nameof(FolderColorDataControl)}.cs", "/" + imageName);
+				string parent = Path.GetDirectoryName(folder)?.Replace('\\', '/');
+				if (string.IsNullOrEmpty(parent))
+					return null;
+
+				if (string.IsNullOrEmpty(imageName))
+					return parent;
+
+				imageName = imageName.TrimStart('/', '\\');
+				return $"{parent}/{imageName}";
 			}
 			
 			private static string GetGlobalAssetPath()
 			{
-				return Path.Combine(GetSaveSetupFolder(), "FolderColorSettings_Global.asset");
+				return $"{GetSaveSetupFolder()}/FolderColorSettings_Global.asset";
 			}
 
 			private static string GetPersonalAssetPath()
 			{
-				return Path.Combine(GetSaveSetupFolder(), $"FolderColorSettings_Perso_{UserId}.asset");
+				return $"{GetSaveSetupFolder()}/FolderColorSettings_Perso_{UserId}.asset";
 			}
 
 			private static void EnsureFolderExists(string assetPath)
 			{
-				string folder = Path.GetDirectoryName(assetPath);
-				if (AssetDatabase.IsValidFolder(folder))
+				string folder = Path.GetDirectoryName(assetPath)?.Replace('\\', '/');
+				if (string.IsNullOrEmpty(folder) || AssetDatabase.IsValidFolder(folder))
 					return;
 
-				string parent = Path.GetDirectoryName(folder);
+				string parent = Path.GetDirectoryName(folder)?.Replace('\\', '/');
 				string name = Path.GetFileName(folder);
 				AssetDatabase.CreateFolder(parent, name);
 			}
