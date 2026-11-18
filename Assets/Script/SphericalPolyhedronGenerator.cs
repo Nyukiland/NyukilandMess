@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -30,6 +29,7 @@ public class SphericalPolyhedronGenerator : MonoBehaviour
     private MeshFilter _meshFilter;
 
 #if UNITY_EDITOR
+    [SerializeField] 
     private bool _regenerationQueued;
 #endif
 
