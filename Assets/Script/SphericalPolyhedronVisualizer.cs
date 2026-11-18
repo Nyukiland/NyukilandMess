@@ -7,36 +7,69 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
 {
     [Header("Polyhedron Settings")]
     [Range(4, 120)]
-    [SerializeField] 
+    [SerializeField]
     private int _faceCount = 14;
 
     [Min(0.1f)]
-    [SerializeField] 
+    [SerializeField]
     private float _radius = 1.5f;
 
     [Range(1, 30)]
-    [SerializeField] 
+    [SerializeField]
     private int _relaxationIterations = 15;
 
-    [Header("Animation Timing")]
-    [Min(0.5f)]
-    [SerializeField] 
-    private float _totalDuration = 3.0f;
-
-    [SerializeField] 
+    [Header("Playback")]
+    [SerializeField]
     private bool _playOnStart = true;
 
+    [Header("Phase Durations (Seconds)")]
+    [Min(0f)]
+    [SerializeField]
+    private float _sphereAppearDuration = 0.35f;
+
+    [Min(0f)]
+    [SerializeField]
+    private float _placeDotsDuration = 0.50f;
+
+    [Min(0f)]
+    [SerializeField]
+    private float _sphereTransparentDuration = 0.30f;
+
+    [Min(0f)]
+    [SerializeField]
+    private float _drawTrianglesDuration = 0.50f;
+
+    [Min(0f)]
+    [SerializeField]
+    private float _showCentersDuration = 0.35f;
+
+    [Min(0f)]
+    [SerializeField]
+    private float _drawFacesDuration = 0.45f;
+
+    [Min(0f)]
+    [SerializeField]
+    private float _hideGuideDuration = 0.20f;
+
+    [Min(0f)]
+    [SerializeField]
+    private float _relaxationDuration = 0.40f;
+
+    [Min(0f)]
+    [SerializeField]
+    private float _finalRevealDuration = 0.20f;
+
     [Header("Visual Styling")]
-    [SerializeField] 
+    [SerializeField]
     private Color _sphereColor = new(0.16f, 0.22f, 0.32f, 1f);
-    
+
     [Range(0.05f, 0.5f)]
-    [SerializeField] 
+    [SerializeField]
     private float _transparentSphereAlpha = 0.16f;
-    
-    [SerializeField] 
+
+    [SerializeField]
     private Color _hullEdgeColor = new(0.85f, 0.92f, 1f, 0.85f);
-    
+
     [SerializeField]
     private Color _circumcenterColor = Color.white;
 
@@ -71,6 +104,17 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
     private readonly List<Vector3> _vertsBuf = new(2048);
     private readonly List<Color> _colorsBuf = new(2048);
     private readonly List<int> _trisBuf = new(4096);
+
+    public float TotalDuration =>
+        _sphereAppearDuration +
+        _placeDotsDuration +
+        _sphereTransparentDuration +
+        _drawTrianglesDuration +
+        _showCentersDuration +
+        _drawFacesDuration +
+        _hideGuideDuration +
+        _relaxationDuration +
+        _finalRevealDuration;
 
     private void Awake()
     {
@@ -131,24 +175,32 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
         _sphereObj.AddComponent<MeshRenderer>().sharedMaterial = _sphereMat;
 
         _dotsMesh = new()
-            { name = "VisualizerDots" };
+        {
+            name = "VisualizerDots"
+        };
         _dotsMesh.MarkDynamic();
         CreateChildMeshObject("DotsLayer", _dotsMesh, _vertexColorUnlitMat);
 
         _hullLinesMesh = new()
-            { name = "HullLines" };
+        {
+            name = "HullLines"
+        };
         _hullLinesMesh.MarkDynamic();
         CreateChildMeshObject("HullLinesLayer", _hullLinesMesh, _vertexColorUnlitMat);
 
         _faceLinesMesh = new()
-            { name = "FaceLines" };
+        {
+            name = "FaceLines"
+        };
         _faceLinesMesh.MarkDynamic();
         CreateChildMeshObject("FaceLinesLayer", _faceLinesMesh, _vertexColorUnlitMat);
 
         _finalPolyObj = new("FinalPolyhedron");
         _finalPolyObj.transform.SetParent(transform, false);
         _finalPolyMesh = new()
-            { name = "FinalPolyhedronMesh" };
+        {
+            name = "FinalPolyhedronMesh"
+        };
         _finalPolyObj.AddComponent<MeshFilter>().sharedMesh = _finalPolyMesh;
         _finalPolyMat = new(litShader);
         _finalPolyMat.color = Color.white;
@@ -202,13 +254,23 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
     private IEnumerator AnimateRoutine()
     {
         DualSnapshot initial = _relaxationSteps[0];
-        DualSnapshot finalSnap = _relaxationSteps[_relaxationSteps.Count - 1];
         int n = initial.Seeds.Length;
 
         float dotRadius = _radius * Mathf.Clamp(0.32f / Mathf.Sqrt(n), 0.022f, 0.075f);
         float centerDotRadius = dotRadius * 0.68f;
         float hullThickness = dotRadius * 0.28f;
         float faceThickness = dotRadius * 0.42f;
+
+        // Cumulative timestamps (in seconds) for each phase boundary
+        float t1SphereEnd = _sphereAppearDuration;
+        float t2DotsEnd = t1SphereEnd + _placeDotsDuration;
+        float t3TransparentEnd = t2DotsEnd + _sphereTransparentDuration;
+        float t4TrianglesEnd = t3TransparentEnd + _drawTrianglesDuration;
+        float t5CentersEnd = t4TrianglesEnd + _showCentersDuration;
+        float t6FacesEnd = t5CentersEnd + _drawFacesDuration;
+        float t7HideGuideEnd = t6FacesEnd + _hideGuideDuration;
+        float t8RelaxEnd = t7HideGuideEnd + _relaxationDuration;
+        float t9RevealEnd = t8RelaxEnd + _finalRevealDuration;
 
         _sphereObj.SetActive(true);
         _sphereObj.transform.localScale = Vector3.zero;
@@ -221,14 +283,14 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
         _faceLinesMesh.Clear();
 
         float elapsed = 0f;
-        while (elapsed < _totalDuration)
+        while (elapsed < t9RevealEnd)
         {
             elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / _totalDuration);
 
-            if (t < 0.12f)
+            // Phase 1: Sphere scale in
+            if (elapsed < t1SphereEnd)
             {
-                float p = Smooth01(t / 0.12f);
+                float p = Smooth01(PhaseProgress(elapsed, 0f, _sphereAppearDuration));
                 _sphereObj.transform.localScale = Vector3.one * (_radius * p);
             }
             else
@@ -236,30 +298,33 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
                 _sphereObj.transform.localScale = Vector3.one * _radius;
             }
 
-            if (t >= 0.28f && t < 0.80f)
+            // Phase 3 & Phase 7: Sphere transparency & fade out
+            if (elapsed >= t2DotsEnd && elapsed < t6FacesEnd)
             {
-                float p = Smooth01((t - 0.28f) / 0.10f);
+                float p = Smooth01(PhaseProgress(elapsed, t2DotsEnd, _sphereTransparentDuration));
                 SetMaterialTransparent(_sphereMat, true);
                 Color c = _sphereColor;
                 c.a = Mathf.Lerp(1f, _transparentSphereAlpha, p);
                 _sphereMat.color = c;
             }
-            else if (t >= 0.80f && t < 0.86f)
+            else if (elapsed >= t6FacesEnd && elapsed < t7HideGuideEnd)
             {
-                float p = Smooth01((t - 0.80f) / 0.06f);
+                float p = Smooth01(PhaseProgress(elapsed, t6FacesEnd, _hideGuideDuration));
+                SetMaterialTransparent(_sphereMat, true);
                 Color c = _sphereColor;
                 c.a = Mathf.Lerp(_transparentSphereAlpha, 0f, p);
                 _sphereMat.color = c;
             }
-            else if (t >= 0.86f)
+            else if (elapsed >= t7HideGuideEnd)
             {
                 _sphereObj.SetActive(false);
             }
 
+            // Phase 8: Progressive Lloyd relaxation
             DualSnapshot activeSnap = initial;
-            if (t >= 0.86f)
+            if (elapsed >= t7HideGuideEnd)
             {
-                float relaxT = Smooth01((t - 0.86f) / 0.10f);
+                float relaxT = Smooth01(PhaseProgress(elapsed, t7HideGuideEnd, _relaxationDuration));
                 float scaledStep = relaxT * (_relaxationSteps.Count - 1);
                 int idx0 = Mathf.FloorToInt(scaledStep);
                 int idx1 = Mathf.Min(idx0 + 1, _relaxationSteps.Count - 1);
@@ -281,17 +346,20 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
                 }
             }
 
-            float overlayAlpha = t < 0.96f ? 1f : 1f - Smooth01((t - 0.96f) / 0.04f);
+            // Phase 9: Final reveal & wireframe fade out
+            float revealProgress = PhaseProgress(elapsed, t8RelaxEnd, _finalRevealDuration);
+            float overlayAlpha = elapsed < t8RelaxEnd ? 1f : 1f - Smooth01(revealProgress);
 
+            // Phase 2 & Phase 5: Seed dots + Triangle circumcenter dots
             ClearBuffers();
-            if (t >= 0.12f && overlayAlpha > 0.001f)
+            if (elapsed >= t1SphereEnd && overlayAlpha > 0.001f)
             {
-                float seedProgress = Mathf.Clamp01((t - 0.12f) / 0.16f);
+                float seedProgress = PhaseProgress(elapsed, t1SphereEnd, _placeDotsDuration);
                 int visibleSeeds = Mathf.CeilToInt(seedProgress * n);
 
                 for (int i = 0; i < visibleSeeds; i++)
                 {
-                    float localPop = Mathf.Clamp01((seedProgress * n - i) * 2.5f);
+                    float localPop = _placeDotsDuration <= 1e-5f ? 1f : Mathf.Clamp01((seedProgress * n - i) * 2.5f);
                     float scale = dotRadius * EaseOutBack(localPop) * overlayAlpha;
                     Color c = _seedColors[i];
                     c.a = overlayAlpha;
@@ -299,15 +367,15 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
                 }
             }
 
-            if (t >= 0.54f && overlayAlpha > 0.001f)
+            if (elapsed >= t4TrianglesEnd && overlayAlpha > 0.001f)
             {
-                float centerProgress = Mathf.Clamp01((t - 0.54f) / 0.12f);
+                float centerProgress = PhaseProgress(elapsed, t4TrianglesEnd, _showCentersDuration);
                 int totalCenters = activeSnap.DualVerts.Length;
                 int visibleCenters = Mathf.CeilToInt(centerProgress * totalCenters);
 
                 for (int i = 0; i < visibleCenters; i++)
                 {
-                    float localPop = Mathf.Clamp01((centerProgress * totalCenters - i) * 2.5f);
+                    float localPop = _showCentersDuration <= 1e-5f ? 1f : Mathf.Clamp01((centerProgress * totalCenters - i) * 2.5f);
                     float scale = centerDotRadius * EaseOutBack(localPop) * overlayAlpha;
                     Color c = _circumcenterColor;
                     c.a = overlayAlpha;
@@ -316,11 +384,14 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
             }
             ApplyBuffersToMesh(_dotsMesh);
 
+            // Phase 4 & Phase 7: Hull triangles draw & disappear
             ClearBuffers();
-            if (t >= 0.38f && t < 0.86f)
+            if (elapsed >= t3TransparentEnd && elapsed < t7HideGuideEnd)
             {
-                float drawProgress = Mathf.Clamp01((t - 0.38f) / 0.16f);
-                float fadeOut = t < 0.80f ? 1f : 1f - Smooth01((t - 0.80f) / 0.06f);
+                float drawProgress = PhaseProgress(elapsed, t3TransparentEnd, _drawTrianglesDuration);
+                float fadeOut = elapsed < t6FacesEnd
+                    ? 1f
+                    : 1f - Smooth01(PhaseProgress(elapsed, t6FacesEnd, _hideGuideDuration));
 
                 int totalEdges = activeSnap.HullEdges.Count;
                 float edgeCursor = drawProgress * totalEdges;
@@ -332,7 +403,7 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
 
                 for (int e = 0; e < fullEdges; e++)
                 {
-                    float segT = Mathf.Clamp01(edgeCursor - e);
+                    float segT = _drawTrianglesDuration <= 1e-5f ? 1f : Mathf.Clamp01(edgeCursor - e);
                     var (ia, ib) = activeSnap.HullEdges[e];
                     Vector3 p0 = activeSnap.Seeds[ia] * (_radius * 1.002f);
                     Vector3 p1 = Vector3.Slerp(activeSnap.Seeds[ia], activeSnap.Seeds[ib], segT).normalized * (_radius * 1.002f);
@@ -341,10 +412,11 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
             }
             ApplyBuffersToMesh(_hullLinesMesh);
 
+            // Phase 6: Colored dual face loops draw
             ClearBuffers();
-            if (t >= 0.66f && overlayAlpha > 0.001f)
+            if (elapsed >= t5CentersEnd && overlayAlpha > 0.001f)
             {
-                float faceDrawProgress = Mathf.Clamp01((t - 0.66f) / 0.14f);
+                float faceDrawProgress = PhaseProgress(elapsed, t5CentersEnd, _drawFacesDuration);
                 float faceCursor = faceDrawProgress * n;
                 int visibleFaces = Mathf.Min(n, Mathf.CeilToInt(faceCursor));
 
@@ -356,7 +428,7 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
                         continue;
                     }
 
-                    float faceSegProgress = Mathf.Clamp01(faceCursor - s);
+                    float faceSegProgress = _drawFacesDuration <= 1e-5f ? 1f : Mathf.Clamp01(faceCursor - s);
                     float totalSegs = ring.Count;
                     float segCursor = faceSegProgress * totalSegs;
                     int segCount = Mathf.Min(ring.Count, Mathf.CeilToInt(segCursor));
@@ -366,7 +438,7 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
 
                     for (int k = 0; k < segCount; k++)
                     {
-                        float localSegT = Mathf.Clamp01(segCursor - k);
+                        float localSegT = _drawFacesDuration <= 1e-5f ? 1f : Mathf.Clamp01(segCursor - k);
                         Vector3 v0 = activeSnap.DualVerts[ring[k]] * 1.008f;
                         Vector3 v1 = activeSnap.DualVerts[ring[(k + 1) % ring.Count]] * 1.008f;
                         Vector3 p1 = Vector3.Lerp(v0, v1, localSegT);
@@ -376,10 +448,11 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
             }
             ApplyBuffersToMesh(_faceLinesMesh);
 
-            if (t >= 0.95f)
+            // Phase 9: Final solid polyhedron scale-in
+            if (elapsed >= t8RelaxEnd)
             {
                 _finalPolyObj.SetActive(true);
-                float p = Smooth01((t - 0.95f) / 0.05f);
+                float p = Smooth01(revealProgress);
                 _finalPolyObj.transform.localScale = Vector3.one * Mathf.Lerp(0.92f, 1f, p);
             }
 
@@ -393,6 +466,16 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
         _finalPolyObj.SetActive(true);
         _finalPolyObj.transform.localScale = Vector3.one;
         _animRoutine = null;
+    }
+
+    private static float PhaseProgress(float elapsed, float startTime, float duration)
+    {
+        if (duration <= 1e-5f)
+        {
+            return elapsed >= startTime ? 1f : 0f;
+        }
+
+        return Mathf.Clamp01((elapsed - startTime) / duration);
     }
 
     private static DualSnapshot BuildDualSnapshot(Vector3[] seeds, float sphereRadius)
@@ -833,7 +916,9 @@ public class SphericalPolyhedronVisualizer : MonoBehaviour
     private static Mesh BuildUvSphereMesh(int lonSegments, int latSegments)
     {
         Mesh mesh = new()
-            { name = "GuideSphereMesh" };
+        {
+            name = "GuideSphereMesh"
+        };
         Vector3[] verts = new Vector3[(lonSegments + 1) * (latSegments + 1)];
         Vector3[] normals = new Vector3[verts.Length];
         int[] tris = new int[lonSegments * latSegments * 6];
